@@ -1,0 +1,68 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Menu, X, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <nav className="bg-olive text-white py-4 px-6 shadow-md">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link to="/" className="text-2xl font-bold">
+          OliveConnect
+        </Link>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center space-x-6">
+          <Link to="/search" className="hover:text-sand transition-colors">
+            Rechercher
+          </Link>
+          <Link to="/about" className="hover:text-sand transition-colors">
+            À propos
+          </Link>
+          <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark">
+            <User className="mr-2 h-4 w-4" />
+            Connexion
+          </Button>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-white"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-olive-dark py-4 px-6 shadow-lg animate-fadeIn">
+          <div className="flex flex-col space-y-4">
+            <Link
+              to="/search"
+              className="text-white hover:text-sand transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Rechercher
+            </Link>
+            <Link
+              to="/about"
+              className="text-white hover:text-sand transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              À propos
+            </Link>
+            <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark w-full">
+              <User className="mr-2 h-4 w-4" />
+              Connexion
+            </Button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
