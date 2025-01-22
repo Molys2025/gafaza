@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, MapPin, Calendar, Tool, Euro } from "lucide-react";
+import { Upload, MapPin, Calendar, Wrench, Euro } from "lucide-react";
 
 const formSchema = z.object({
   // Informations personnelles
