@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Tree, Users, Search } from "lucide-react";
+import { Trees, Users, Search } from "lucide-react";
 
 const Index = () => {
   return (
@@ -48,7 +48,7 @@ const Index = () => {
             </div>
             <div className="text-center p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="bg-olive/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Tree className="w-8 h-8 text-olive" />
+                <Trees className="w-8 h-8 text-olive" />
               </div>
               <h3 className="text-xl font-semibold text-olive-dark mb-2">Commencez la récolte</h3>
               <p className="text-gray-600">Planifiez la récolte et profitez d'une collaboration fructueuse.</p>
