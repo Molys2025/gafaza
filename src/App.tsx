@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import OwnerProfile from "./pages/OwnerProfile";
+import HarvesterProfile from "./pages/HarvesterProfile";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/search" element={<Search />} />
               <Route path="/owner-profile" element={<OwnerProfile />} />
+              <Route path="/harvester-profile" element={<HarvesterProfile />} />
             </Routes>
             <Toaster />
           </BrowserRouter>
