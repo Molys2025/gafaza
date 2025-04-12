@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Tree, UserHardHat } from "lucide-react";
+import { Menu, X, User, Trees, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
