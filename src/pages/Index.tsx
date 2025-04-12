@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Trees, Users, Search } from "lucide-react";
@@ -15,11 +16,15 @@ const Index = () => {
             La première plateforme tunisienne qui met en relation les propriétaires d'oliviers et les cueilleurs professionnels.
           </p>
           <div className="flex flex-col md:flex-row gap-4 justify-center animate-fadeIn">
-            <Button className="bg-olive hover:bg-olive-dark text-white px-8 py-6 text-lg">
-              Je suis propriétaire
+            <Button className="bg-olive hover:bg-olive-dark text-white px-8 py-6 text-lg" asChild>
+              <Link to="/owner-profile">
+                Je suis propriétaire
+              </Link>
             </Button>
-            <Button className="bg-olive-dark hover:bg-olive text-white px-8 py-6 text-lg">
-              Je suis cueilleur
+            <Button className="bg-olive-dark hover:bg-olive text-white px-8 py-6 text-lg" asChild>
+              <Link to="/harvester-profile">
+                Je suis cueilleur
+              </Link>
             </Button>
           </div>
         </div>

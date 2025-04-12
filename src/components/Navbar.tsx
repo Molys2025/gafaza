@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Tree, UserHardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
@@ -17,6 +18,12 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/search" className="hover:text-sand transition-colors">
             Rechercher
+          </Link>
+          <Link to="/owner-profile" className="hover:text-sand transition-colors">
+            Propriétaire
+          </Link>
+          <Link to="/harvester-profile" className="hover:text-sand transition-colors">
+            Cueilleur
           </Link>
           <Link to="/about" className="hover:text-sand transition-colors">
             À propos
@@ -38,7 +45,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-olive-dark py-4 px-6 shadow-lg animate-fadeIn">
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-olive-dark py-4 px-6 shadow-lg animate-fadeIn z-50">
           <div className="flex flex-col space-y-4">
             <Link
               to="/search"
@@ -46,6 +53,20 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               Rechercher
+            </Link>
+            <Link
+              to="/owner-profile"
+              className="text-white hover:text-sand transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Propriétaire
+            </Link>
+            <Link
+              to="/harvester-profile"
+              className="text-white hover:text-sand transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Cueilleur
             </Link>
             <Link
               to="/about"
