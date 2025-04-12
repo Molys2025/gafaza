@@ -1,7 +1,9 @@
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
@@ -21,6 +23,7 @@ function App() {
               <Route path="/search" element={<Search />} />
               <Route path="/owner-profile" element={<OwnerProfile />} />
             </Routes>
+            <Toaster />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
