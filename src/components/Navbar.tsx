@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Trees, HardHat } from "lucide-react";
+import { Menu, X, User, Trees, HardHat, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
@@ -11,7 +11,7 @@ const Navbar = () => {
     <nav className="bg-olive text-white py-4 px-6 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold">
-          OliveConnect
+          Zeytna
         </Link>
 
         {/* Desktop Menu */}
@@ -24,6 +24,9 @@ const Navbar = () => {
           </Link>
           <Link to="/harvester-profile" className="hover:text-sand transition-colors">
             Cueilleur
+          </Link>
+          <Link to="/messages" className="hover:text-sand transition-colors">
+            Messages
           </Link>
           <Link to="/about" className="hover:text-sand transition-colors">
             À propos
@@ -67,6 +70,13 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               Cueilleur
+            </Link>
+            <Link
+              to="/messages"
+              className="text-white hover:text-sand transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Messages
             </Link>
             <Link
               to="/about"

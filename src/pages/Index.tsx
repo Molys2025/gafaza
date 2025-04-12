@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Trees, Users, Search } from "lucide-react";
+import { Trees, Users, Search, MessageCircle } from "lucide-react";
 
 const Index = () => {
   return (
@@ -53,10 +53,10 @@ const Index = () => {
             </div>
             <div className="text-center p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="bg-olive/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trees className="w-8 h-8 text-olive" />
+                <MessageCircle className="w-8 h-8 text-olive" />
               </div>
-              <h3 className="text-xl font-semibold text-olive-dark mb-2">Commencez la récolte</h3>
-              <p className="text-gray-600">Planifiez la récolte et profitez d'une collaboration fructueuse.</p>
+              <h3 className="text-xl font-semibold text-olive-dark mb-2">Communiquez</h3>
+              <p className="text-gray-600">Discutez et planifiez la récolte via notre système de messagerie sécurisé.</p>
             </div>
           </div>
         </div>

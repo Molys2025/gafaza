@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Search from "./pages/Search";
 import OwnerProfile from "./pages/OwnerProfile";
 import HarvesterProfile from "./pages/HarvesterProfile";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/search" element={<Search />} />
               <Route path="/owner-profile" element={<OwnerProfile />} />
               <Route path="/harvester-profile" element={<HarvesterProfile />} />
+              <Route path="/messages" element={<Messages />} />
             </Routes>
             <Toaster />
           </BrowserRouter>
