@@ -1,10 +1,27 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConversationList from "@/components/messages/ConversationList";
 import ChatView from "@/components/messages/ChatView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Star, Archive, Inbox } from "lucide-react";
+import { Search, Filter, Star, Archive, Inbox, Bell, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface User {
   id: string;
@@ -37,6 +54,18 @@ interface Conversation {
 const Messages = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Handle responsive layout
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Mock conversation data
   const allConversations: Conversation[] = [
@@ -180,21 +209,161 @@ const Messages = () => {
         read: true,
         type: "text",
       },
+      {
+        id: "msg6",
+        senderId: "user1",
+        content: "Parfait. Voici la localisation exacte de l'oliveraie.",
+        timestamp: "10:30",
+        read: false,
+        type: "location",
+      },
+      {
+        id: "msg7",
+        senderId: "user1",
+        content: "Et voici le contrat type pour les cueilleurs.",
+        timestamp: "10:32",
+        read: false,
+        type: "file",
+      },
     ];
   };
 
+  // Handle sending a new message
+  const handleSendMessage = (message: string) => {
+    console.log("Sending message:", message);
+    // In a real app, this would send the message to Supabase
+  };
+
+  // Mobile view with conversation/chat sheets
+  if (isMobile) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Messagerie</h1>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon">
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+        
+        {!selectedConversation ? (
+          <div className="space-y-4">
+            <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-4 mb-4">
+                <TabsTrigger value="all" className="flex items-center gap-2">
+                  <Inbox className="h-4 w-4" />
+                  <span className="hidden sm:inline">Tous</span>
+                </TabsTrigger>
+                <TabsTrigger value="unread" className="flex items-center gap-2">
+                  <span>Non lus</span>
+                </TabsTrigger>
+                <TabsTrigger value="important" className="flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  <span className="hidden sm:inline">Importants</span>
+                </TabsTrigger>
+                <TabsTrigger value="archived" className="flex items-center gap-2">
+                  <Archive className="h-4 w-4" />
+                  <span className="hidden sm:inline">Archivés</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all" className="h-[calc(100vh-220px)] overflow-y-auto">
+                <ConversationList 
+                  conversations={getFilteredConversations()}
+                  selectedId={selectedConversation}
+                  onSelect={setSelectedConversation}
+                />
+              </TabsContent>
+              
+              <TabsContent value="unread" className="h-[calc(100vh-220px)] overflow-y-auto">
+                <ConversationList 
+                  conversations={getFilteredConversations()}
+                  selectedId={selectedConversation}
+                  onSelect={setSelectedConversation}
+                />
+              </TabsContent>
+              
+              <TabsContent value="important" className="h-[calc(100vh-220px)] overflow-y-auto">
+                <ConversationList 
+                  conversations={getFilteredConversations()}
+                  selectedId={selectedConversation}
+                  onSelect={setSelectedConversation}
+                />
+              </TabsContent>
+              
+              <TabsContent value="archived" className="h-[calc(100vh-220px)] overflow-y-auto">
+                <ConversationList 
+                  conversations={getFilteredConversations()}
+                  selectedId={selectedConversation}
+                  onSelect={setSelectedConversation}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+        ) : (
+          <div className="h-[calc(100vh-120px)] border rounded-lg shadow-sm overflow-hidden flex flex-col">
+            <ChatView 
+              conversationId={selectedConversation}
+              recipientName={getSelectedConversation()?.user.name || ""}
+              recipientAvatar={getSelectedConversation()?.user.avatar || ""}
+              messages={getMessagesForConversation()}
+              onSendMessage={handleSendMessage}
+            />
+            <div className="p-2 border-t">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSelectedConversation(null)}
+                className="w-full"
+              >
+                Retour aux conversations
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view with split layout
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">Messagerie</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Messagerie</h1>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Options</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                Mode "Ne pas déranger"
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                Exporter les conversations
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                Paramètres de notifications
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
       
-      <div className="flex flex-col md:flex-row gap-6 h-[700px]">
+      <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-180px)]">
         <div className="w-full md:w-1/3 flex flex-col border rounded-lg shadow-sm">
           <div className="p-4 border-b">
-            <div className="relative mb-4">
-              <Input placeholder="Rechercher une conversation..." className="pl-9" />
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            </div>
-            
             <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-4 mb-4">
                 <TabsTrigger value="all" className="flex items-center gap-2">
@@ -214,7 +383,7 @@ const Messages = () => {
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="all" className="h-[550px] overflow-y-auto">
+              <TabsContent value="all" className="h-[calc(100vh-280px)] overflow-y-auto">
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
@@ -222,7 +391,7 @@ const Messages = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="unread" className="h-[550px] overflow-y-auto">
+              <TabsContent value="unread" className="h-[calc(100vh-280px)] overflow-y-auto">
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
@@ -230,7 +399,7 @@ const Messages = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="important" className="h-[550px] overflow-y-auto">
+              <TabsContent value="important" className="h-[calc(100vh-280px)] overflow-y-auto">
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
@@ -238,7 +407,7 @@ const Messages = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="archived" className="h-[550px] overflow-y-auto">
+              <TabsContent value="archived" className="h-[calc(100vh-280px)] overflow-y-auto">
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
@@ -256,7 +425,7 @@ const Messages = () => {
               recipientName={getSelectedConversation()?.user.name || ""}
               recipientAvatar={getSelectedConversation()?.user.avatar || ""}
               messages={getMessagesForConversation()}
-              onSendMessage={(message) => console.log("Sending message:", message)}
+              onSendMessage={handleSendMessage}
             />
           ) : (
             <div className="flex items-center justify-center h-full">
