@@ -3,6 +3,7 @@ import { useState } from "react";
 import { EvaluationSection } from "@/components/evaluation/EvaluationSection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Star } from "lucide-react";
 
 export default function Evaluation() {
   const [userType, setUserType] = useState<"propriétaire" | "cueilleur">("propriétaire");
