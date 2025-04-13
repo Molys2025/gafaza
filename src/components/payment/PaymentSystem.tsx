@@ -5,8 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Landmark, Smartphone, Banknote, ShieldCheck } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CreditCard, Landmark, Smartphone, Banknote, ShieldCheck, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 
 interface PaymentMethodProps {
   onSubmit: (data: any) => void;
@@ -198,7 +200,12 @@ const PaymentSystem = ({
   onPaymentComplete,
 }: PaymentSystemProps) => {
   const [processing, setProcessing] = useState(false);
+  const [useEscrow, setUseEscrow] = useState(true);
+  const [serviceFeeRate, setServiceFeeRate] = useState(0.05); // Default 5%
   const { toast } = useToast();
+
+  const serviceFee = amount * serviceFeeRate;
+  const totalAmount = amount + serviceFee;
 
   const handlePaymentSubmit = (data: any) => {
     setProcessing(true);
@@ -208,17 +215,21 @@ const PaymentSystem = ({
       setProcessing(false);
       toast({
         title: "Paiement réussi",
-        description: `Votre paiement de ${amount} ${currency} via ${data.type} a été traité avec succès.`,
+        description: `Votre paiement de ${totalAmount.toFixed(2)} ${currency} via ${data.type} a été traité avec succès.`,
       });
       
       if (onPaymentComplete) {
         onPaymentComplete({
           success: true,
           transactionId: "TXN" + Math.floor(Math.random() * 1000000),
-          amount,
+          amount: totalAmount,
+          serviceFee: serviceFee,
+          baseAmount: amount,
           currency,
           method: data.type,
+          escrow: useEscrow,
           timestamp: new Date().toISOString(),
+          status: useEscrow ? "escrow" : "completed",
         });
       }
     }, 2000);
@@ -234,6 +245,22 @@ const PaymentSystem = ({
         <div className="mb-6">
           <h3 className="text-2xl font-bold mb-1">{amount} {currency}</h3>
           <p className="text-sm text-gray-500">Choisissez votre méthode de paiement</p>
+        </div>
+        
+        <div className="mb-4 p-3 border rounded-md bg-blue-50">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="escrow" 
+              checked={useEscrow} 
+              onCheckedChange={setUseEscrow}
+            />
+            <Label htmlFor="escrow" className="font-medium text-blue-700">Paiement sécurisé par séquestre</Label>
+          </div>
+          <p className="text-sm text-blue-600 mt-1">
+            {useEscrow 
+              ? "Les fonds seront bloqués jusqu'à la validation du travail effectué." 
+              : "Le paiement sera versé immédiatement au prestataire."}
+          </p>
         </div>
         
         <Tabs defaultValue="card">
@@ -276,16 +303,25 @@ const PaymentSystem = ({
       <CardFooter className="border-t pt-4 flex flex-col items-start">
         <div className="w-full flex justify-between mb-2 text-sm">
           <span>Montant</span>
-          <span>{amount} {currency}</span>
+          <span>{amount.toFixed(2)} {currency}</span>
         </div>
         <div className="w-full flex justify-between mb-2 text-sm">
-          <span>Frais de plateforme (5%)</span>
-          <span>{(amount * 0.05).toFixed(2)} {currency}</span>
+          <span>Frais de plateforme ({(serviceFeeRate * 100).toFixed(0)}%)</span>
+          <span>{serviceFee.toFixed(2)} {currency}</span>
         </div>
         <div className="w-full flex justify-between font-bold">
           <span>Total</span>
-          <span>{(amount * 1.05).toFixed(2)} {currency}</span>
+          <span>{totalAmount.toFixed(2)} {currency}</span>
         </div>
+        
+        {useEscrow && (
+          <div className="w-full mt-3 pt-3 border-t flex items-start space-x-2 text-xs text-gray-500">
+            <ShieldCheck className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+            <span>
+              Le paiement par séquestre protège votre transaction en bloquant les fonds jusqu'à confirmation du travail effectué.
+            </span>
+          </div>
+        )}
       </CardFooter>
     </Card>
   );
