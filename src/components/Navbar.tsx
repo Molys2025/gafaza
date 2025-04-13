@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Trees, HardHat, MessageCircle, Wallet } from "lucide-react";
+import { Menu, X, User, Trees, HardHat, MessageCircle, Wallet, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
@@ -30,6 +30,9 @@ const Navbar = () => {
           </Link>
           <Link to="/payment" className="hover:text-sand transition-colors">
             Paiements
+          </Link>
+          <Link to="/evaluation" className="hover:text-sand transition-colors">
+            Évaluations
           </Link>
           <Link to="/about" className="hover:text-sand transition-colors">
             À propos
@@ -87,6 +90,13 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
             >
               Paiements
+            </Link>
+            <Link
+              to="/evaluation"
+              className="text-white hover:text-sand transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Évaluations
             </Link>
             <Link
               to="/about"
