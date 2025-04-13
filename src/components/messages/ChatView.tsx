@@ -106,6 +106,22 @@ const ChatView = ({
     }
   };
 
+  // Si aucune conversation n'est sélectionnée, afficher un message
+  if (!conversationId) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Aucune conversation sélectionnée
+          </h3>
+          <p className="text-gray-500">
+            Sélectionnez une conversation dans la liste pour commencer à discuter
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b flex items-center justify-between">

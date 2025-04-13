@@ -41,6 +41,12 @@ const ConversationList = ({ conversations, selectedId, onSelect }: ConversationL
     conv.lastMessage.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleSelectConversation = (id: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onSelect(id);
+  };
+
   if (filteredConversations.length === 0) {
     return (
       <div className="p-6 text-center text-gray-500">
@@ -76,7 +82,7 @@ const ConversationList = ({ conversations, selectedId, onSelect }: ConversationL
               selectedId === conversation.id && "bg-gray-100 hover:bg-gray-100",
               conversation.status === "archived" && "opacity-70"
             )}
-            onClick={() => onSelect(conversation.id)}
+            onClick={(e) => handleSelectConversation(conversation.id, e)}
           >
             <div className="flex items-start">
               <div className="relative mr-3">

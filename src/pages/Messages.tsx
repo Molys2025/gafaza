@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConversationList from "@/components/messages/ConversationList";
 import ChatView from "@/components/messages/ChatView";
@@ -22,6 +22,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useToast } from "@/components/ui/use-toast";
 
 interface User {
   id: string;
@@ -55,6 +56,8 @@ const Messages = () => {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [messages, setMessages] = useState<{ [key: string]: MessageItem[] }>({});
+  const { toast } = useToast();
 
   // Handle responsive layout
   useEffect(() => {
@@ -135,6 +138,20 @@ const Messages = () => {
     },
   ];
 
+  // Handle selecting a conversation
+  const handleSelectConversation = useCallback((id: string) => {
+    console.log("Selecting conversation:", id);
+    setSelectedConversation(id);
+    
+    // Initialiser les messages pour cette conversation s'ils n'existent pas encore
+    if (!messages[id]) {
+      setMessages(prev => ({
+        ...prev,
+        [id]: getMessagesForConversation(id)
+      }));
+    }
+  }, [messages]);
+
   // Filter conversations based on the active tab
   const getFilteredConversations = (): Conversation[] => {
     switch (activeTab) {
@@ -165,73 +182,57 @@ const Messages = () => {
   };
 
   // Mock message data for the selected conversation
-  const getMessagesForConversation = (): MessageItem[] => {
-    if (!selectedConversation) return [];
+  const getMessagesForConversation = (convId: string): MessageItem[] => {
+    if (!convId) return [];
 
-    return [
+    // Messages de base pour toutes les conversations
+    const baseMessages = [
       {
-        id: "msg1",
-        senderId: "user1",
+        id: `${convId}_msg1`,
+        senderId: `user${convId.replace("conv", "")}`,
         content: "Bonjour, j'ai une oliveraie à Nabeul d'environ 3 hectares.",
         timestamp: "10:15",
         read: true,
-        type: "text",
+        type: "text" as const,
       },
       {
-        id: "msg2",
+        id: `${convId}_msg2`,
         senderId: "currentUser",
         content: "Bonjour! Je suis intéressé. Combien d'oliviers environ?",
         timestamp: "10:18",
         read: true,
-        type: "text",
-      },
-      {
-        id: "msg3",
-        senderId: "user1",
-        content: "Environ 300 oliviers. Êtes-vous disponible en Novembre?",
-        timestamp: "10:20",
-        read: true,
-        type: "text",
-      },
-      {
-        id: "msg4",
-        senderId: "user1",
-        content: "Voici une photo de l'oliveraie",
-        timestamp: "10:25",
-        read: true,
-        type: "image",
-      },
-      {
-        id: "msg5",
-        senderId: "currentUser",
-        content: "Elle semble en bon état. Je suis disponible du 10 au 25 novembre.",
-        timestamp: "10:28",
-        read: true,
-        type: "text",
-      },
-      {
-        id: "msg6",
-        senderId: "user1",
-        content: "Parfait. Voici la localisation exacte de l'oliveraie.",
-        timestamp: "10:30",
-        read: false,
-        type: "location",
-      },
-      {
-        id: "msg7",
-        senderId: "user1",
-        content: "Et voici le contrat type pour les cueilleurs.",
-        timestamp: "10:32",
-        read: false,
-        type: "file",
+        type: "text" as const,
       },
     ];
+
+    // Utiliser les messages existants s'ils existent, sinon utiliser les messages de base
+    return messages[convId] || baseMessages;
   };
 
   // Handle sending a new message
   const handleSendMessage = (message: string) => {
-    console.log("Sending message:", message);
-    // In a real app, this would send the message to Supabase
+    if (!selectedConversation) return;
+
+    const newMessage: MessageItem = {
+      id: `msg_${Date.now()}`,
+      senderId: "currentUser",
+      content: message,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false,
+      type: "text",
+    };
+
+    // Update messages state with the new message
+    setMessages(prev => ({
+      ...prev,
+      [selectedConversation]: [...(prev[selectedConversation] || getMessagesForConversation(selectedConversation)), newMessage]
+    }));
+
+    toast({
+      title: "Message envoyé",
+      description: "Votre message a été envoyé avec succès.",
+      duration: 2000,
+    });
   };
 
   // Mobile view with conversation/chat sheets
@@ -275,7 +276,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
               
@@ -283,7 +284,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
               
@@ -291,7 +292,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
               
@@ -299,7 +300,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
             </Tabs>
@@ -310,7 +311,7 @@ const Messages = () => {
               conversationId={selectedConversation}
               recipientName={getSelectedConversation()?.user.name || ""}
               recipientAvatar={getSelectedConversation()?.user.avatar || ""}
-              messages={getMessagesForConversation()}
+              messages={messages[selectedConversation] || getMessagesForConversation(selectedConversation)}
               onSendMessage={handleSendMessage}
             />
             <div className="p-2 border-t">
@@ -387,7 +388,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
               
@@ -395,7 +396,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
               
@@ -403,7 +404,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
               
@@ -411,7 +412,7 @@ const Messages = () => {
                 <ConversationList 
                   conversations={getFilteredConversations()}
                   selectedId={selectedConversation}
-                  onSelect={setSelectedConversation}
+                  onSelect={handleSelectConversation}
                 />
               </TabsContent>
             </Tabs>
@@ -424,7 +425,7 @@ const Messages = () => {
               conversationId={selectedConversation}
               recipientName={getSelectedConversation()?.user.name || ""}
               recipientAvatar={getSelectedConversation()?.user.avatar || ""}
-              messages={getMessagesForConversation()}
+              messages={messages[selectedConversation] || getMessagesForConversation(selectedConversation)}
               onSendMessage={handleSendMessage}
             />
           ) : (
