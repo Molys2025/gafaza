@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PaymentSystem from "@/components/payment/PaymentSystem";
@@ -13,6 +12,9 @@ import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
+
+// No changes needed in this file since we're just refactoring the imported component
+// The PaymentSystem import path remains the same, but the component's internal structure has changed
 
 const Payment = () => {
   const [selectedTab, setSelectedTab] = useState("payment");
