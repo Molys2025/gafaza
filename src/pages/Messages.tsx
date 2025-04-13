@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ConversationList from "@/components/messages/ConversationList";
@@ -253,7 +252,9 @@ const Messages = () => {
         <div className="w-full md:w-2/3 border rounded-lg shadow-sm overflow-hidden">
           {selectedConversation ? (
             <ChatView 
-              conversation={getSelectedConversation()!}
+              conversationId={selectedConversation}
+              recipientName={getSelectedConversation()?.user.name || ""}
+              recipientAvatar={getSelectedConversation()?.user.avatar || ""}
               messages={getMessagesForConversation()}
               onSendMessage={(message) => console.log("Sending message:", message)}
             />

@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, Download, Wallet, CreditCard, LineChart, CircleDollarSign, Calendar } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { ArrowUpRight, ArrowDownRight, Download, Wallet, CircleDollarSign, Calendar } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line as RechartsLine } from "recharts";
 
 interface FinancialData {
   balance: number;
@@ -190,7 +190,7 @@ const FinancialDashboard = ({ data }: FinancialDashboardProps) => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `${value} ${financialData.currency}`} />
+                    <RechartsTooltip formatter={(value) => `${value} ${financialData.currency}`} />
                     <Legend />
                     <Bar dataKey="earnings" name="Gains" fill="#10b981" />
                     <Bar dataKey="spendings" name="Dépenses" fill="#ef4444" />
@@ -267,7 +267,7 @@ const FinancialDashboard = ({ data }: FinancialDashboardProps) => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `${value}%`} />
+                    <RechartsTooltip formatter={(value) => `${value}%`} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -285,11 +285,11 @@ const FinancialDashboard = ({ data }: FinancialDashboardProps) => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `${value} ${financialData.currency}`} />
+                    <RechartsTooltip formatter={(value) => `${value} ${financialData.currency}`} />
                     <Legend />
                     <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-                    <Line type="monotone" dataKey="earnings" name="Gains" stroke="#10b981" />
-                    <Line type="monotone" dataKey="spendings" name="Dépenses" stroke="#ef4444" />
+                    <RechartsLine type="monotone" dataKey="earnings" name="Gains" stroke="#10b981" />
+                    <RechartsLine type="monotone" dataKey="spendings" name="Dépenses" stroke="#ef4444" />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
