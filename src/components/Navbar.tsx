@@ -1,11 +1,13 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User, Trees, HardHat, MessageCircle, Wallet, Star } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <nav className="bg-olive text-white py-4 px-6 shadow-md">
@@ -17,29 +19,29 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/search" className="hover:text-sand transition-colors">
-            Rechercher
+            {t('common.search')}
           </Link>
           <Link to="/owner-profile" className="hover:text-sand transition-colors">
-            Propriétaire
+            {t('common.owner')}
           </Link>
           <Link to="/harvester-profile" className="hover:text-sand transition-colors">
-            Cueilleur
+            {t('common.harvester')}
           </Link>
           <Link to="/messages" className="hover:text-sand transition-colors">
-            Messages
+            {t('common.messages')}
           </Link>
           <Link to="/payment" className="hover:text-sand transition-colors">
-            Paiements
+            {t('common.payments')}
           </Link>
           <Link to="/evaluation" className="hover:text-sand transition-colors">
-            Évaluations
+            {t('common.evaluations')}
           </Link>
           <Link to="/about" className="hover:text-sand transition-colors">
-            À propos
+            {t('common.about')}
           </Link>
           <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark">
             <User className="mr-2 h-4 w-4" />
-            Connexion
+            {t('common.login')}
           </Button>
         </div>
 
@@ -56,58 +58,30 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden absolute top-16 left-0 right-0 bg-olive-dark py-4 px-6 shadow-lg animate-fadeIn z-50">
           <div className="flex flex-col space-y-4">
-            <Link
-              to="/search"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Rechercher
+            <Link to="/search" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.search')}
             </Link>
-            <Link
-              to="/owner-profile"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Propriétaire
+            <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.owner')}
             </Link>
-            <Link
-              to="/harvester-profile"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Cueilleur
+            <Link to="/harvester-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.harvester')}
             </Link>
-            <Link
-              to="/messages"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Messages
+            <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.messages')}
             </Link>
-            <Link
-              to="/payment"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Paiements
+            <Link to="/payment" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.payments')}
             </Link>
-            <Link
-              to="/evaluation"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Évaluations
+            <Link to="/evaluation" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.evaluations')}
             </Link>
-            <Link
-              to="/about"
-              className="text-white hover:text-sand transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              À propos
+            <Link to="/about" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.about')}
             </Link>
             <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark w-full">
               <User className="mr-2 h-4 w-4" />
-              Connexion
+              {t('common.login')}
             </Button>
           </div>
         </div>

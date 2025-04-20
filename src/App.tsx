@@ -12,6 +12,8 @@ import HarvesterProfile from "./pages/HarvesterProfile";
 import Messages from "./pages/Messages";
 import Payment from "./pages/Payment";
 import Evaluation from "./pages/Evaluation";
+import LanguageToggle from "./components/LanguageToggle";
+import "./i18n/config";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,7 @@ function App() {
               <Route path="/payment" element={<Payment />} />
               <Route path="/evaluation" element={<Evaluation />} />
             </Routes>
+            <LanguageToggle />
             <Toaster />
           </BrowserRouter>
         </TooltipProvider>
