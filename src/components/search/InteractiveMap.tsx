@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
 
 interface InteractiveMapProps {
   results: any[];
@@ -46,6 +47,37 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
     'Kebili': [8.9690, 33.7047]
   };
 
+  // Fonction pour récupérer le token Mapbox depuis l'Edge Function
+  const fetchMapboxToken = async () => {
+    try {
+      console.log('Récupération du token Mapbox depuis l\'Edge Function...');
+      
+      const { data, error } = await supabase.functions.invoke('get-secret', {
+        body: { name: 'MAPBOX_PUBLIC_TOKEN' }
+      });
+
+      if (error) {
+        console.error('Erreur lors de la récupération du token:', error);
+        setError('Erreur lors de la récupération du token Mapbox depuis Supabase');
+        setIsLoading(false);
+        return;
+      }
+
+      if (data && data.value) {
+        console.log('Token Mapbox récupéré avec succès');
+        setMapboxToken(data.value);
+      } else {
+        console.error('Token non trouvé dans la réponse');
+        setError('Token Mapbox non configuré dans Supabase. Veuillez ajouter MAPBOX_PUBLIC_TOKEN dans les secrets Edge Function.');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Erreur lors de la récupération du token:', err);
+      setError('Erreur de connexion à Supabase');
+      setIsLoading(false);
+    }
+  };
+
   const initializeMap = () => {
     if (!mapContainer.current || !mapboxToken.trim()) return;
 
@@ -84,13 +116,18 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   };
 
   useEffect(() => {
-    if (mapboxToken.trim()) {
-      initializeMap();
-    }
+    // Récupérer le token au chargement du composant
+    fetchMapboxToken();
 
     return () => {
       map.current?.remove();
     };
+  }, []);
+
+  useEffect(() => {
+    if (mapboxToken.trim()) {
+      initializeMap();
+    }
   }, [mapboxToken]);
 
   useEffect(() => {
@@ -192,36 +229,6 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
     });
   };
 
-  if (!mapboxToken.trim()) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold mb-2">Configuration requise</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Pour afficher la carte, veuillez entrer votre token public Mapbox :
-          </p>
-          <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Entrez votre token public Mapbox"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive"
-              value={mapboxToken}
-              onChange={(e) => setMapboxToken(e.target.value)}
-            />
-            <div className="text-xs text-gray-500">
-              <p>Pour obtenir votre token :</p>
-              <ol className="list-decimal list-inside mt-1 space-y-1">
-                <li>Allez sur <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">account.mapbox.com</a></li>
-                <li>Créez un compte ou connectez-vous</li>
-                <li>Copiez votre "Default public token"</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -230,7 +237,19 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
           <AlertDescription>
             {error}
             <div className="mt-2 text-sm">
-              Vérifiez que votre token Mapbox est valide et que vous avez une connexion internet.
+              {error.includes('MAPBOX_PUBLIC_TOKEN') ? (
+                <div>
+                  <p>Pour configurer le token Mapbox :</p>
+                  <ol className="list-decimal list-inside mt-1 space-y-1">
+                    <li>Allez dans votre projet Supabase</li>
+                    <li>Naviguez vers Edge Functions → Secrets</li>
+                    <li>Ajoutez un nouveau secret nommé "MAPBOX_PUBLIC_TOKEN"</li>
+                    <li>Collez votre token public Mapbox obtenu sur <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">account.mapbox.com</a></li>
+                  </ol>
+                </div>
+              ) : (
+                <p>Vérifiez votre connexion internet et les paramètres Supabase.</p>
+              )}
             </div>
           </AlertDescription>
         </Alert>
