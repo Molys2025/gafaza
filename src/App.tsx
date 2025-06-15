@@ -11,6 +11,7 @@ import OwnerProfile from "./pages/OwnerProfile";
 import OwnerMyProfile from "./pages/OwnerMyProfile";
 import OwnerOliveTrees from "./pages/OwnerOliveTrees";
 import OwnerOliveTreeDetails from "./pages/OwnerOliveTreeDetails";
+import OwnerEditOliveGrove from "./pages/OwnerEditOliveGrove";
 import OwnerPlanHarvest from "./pages/OwnerPlanHarvest";
 import OwnerAddOliveGrove from "./pages/OwnerAddOliveGrove";
 import OwnerFindHarvesters from "./pages/OwnerFindHarvesters";
@@ -38,6 +39,7 @@ function App() {
               <Route path="/owner-my-profile" element={<OwnerMyProfile />} />
               <Route path="/owner-olive-trees" element={<OwnerOliveTrees />} />
               <Route path="/owner-olive-tree-details" element={<OwnerOliveTreeDetails />} />
+              <Route path="/owner-edit-olive-grove" element={<OwnerEditOliveGrove />} />
               <Route path="/owner-plan-harvest" element={<OwnerPlanHarvest />} />
               <Route path="/owner-add-olive-grove" element={<OwnerAddOliveGrove />} />
               <Route path="/owner-find-harvesters" element={<OwnerFindHarvesters />} />

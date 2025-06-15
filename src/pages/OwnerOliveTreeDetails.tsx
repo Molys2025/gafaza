@@ -1,13 +1,18 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TreePine, MapPin, Calendar, ArrowLeft, Edit } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 const OwnerOliveTreeDetails = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const oliveName = searchParams.get('name') || 'Oliveraie';
+
+  const handleEdit = () => {
+    // Naviguer vers la page d'édition avec le nom de l'oliveraie
+    navigate(`/owner-edit-olive-grove?name=${encodeURIComponent(oliveName)}`);
+  };
 
   // Données d'exemple - en réalité, on récupérerait les données selon l'ID
   const oliveDetails = {
@@ -41,7 +46,10 @@ const OwnerOliveTreeDetails = () => {
 
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-olive-dark">Détails - {oliveDetails.name}</h1>
-            <Button className="bg-olive hover:bg-olive-dark flex items-center gap-2">
+            <Button 
+              onClick={handleEdit}
+              className="bg-olive hover:bg-olive-dark flex items-center gap-2"
+            >
               <Edit size={16} />
               Modifier
             </Button>
