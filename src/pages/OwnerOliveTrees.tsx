@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,24 +29,18 @@ const OwnerOliveTrees = () => {
   ]);
 
   const handleAddOliveGrove = () => {
-    toast({
-      title: "Ajouter une oliveraie",
-      description: "Fonctionnalité en cours de développement",
-    });
+    // Navigation vers la page d'ajout d'oliveraie
+    window.location.href = '/owner-add-olive-grove';
   };
 
   const handleViewDetails = (oliveName: string) => {
-    toast({
-      title: "Détails de l'oliveraie",
-      description: `Affichage des détails pour ${oliveName}`,
-    });
+    // Navigation vers la page de détails
+    window.location.href = `/owner-olive-tree-details?name=${encodeURIComponent(oliveName)}`;
   };
 
   const handlePlanHarvest = (oliveName: string) => {
-    toast({
-      title: "Planifier la récolte",
-      description: `Planification de la récolte pour ${oliveName}`,
-    });
+    // Navigation vers la page de planification
+    window.location.href = `/owner-plan-harvest?name=${encodeURIComponent(oliveName)}`;
   };
 
   return (
