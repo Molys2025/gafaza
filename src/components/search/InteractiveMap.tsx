@@ -214,23 +214,22 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden relative">
       <div 
         ref={mapContainer} 
         className="h-[500px] w-full"
-        style={{ position: 'relative' }}
       />
       
       {/* Légende */}
-      <div className="absolute top-3 left-3 bg-white rounded-md shadow-md p-3 z-10">
-        <div className="text-xs font-semibold mb-2">Légende</div>
+      <div className="absolute top-4 left-4 bg-white rounded-md shadow-lg p-3 z-10 border">
+        <div className="text-xs font-semibold mb-2 text-gray-800">Légende</div>
         <div className="flex items-center mb-1">
-          <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-          <span className="text-xs">Cueilleurs</span>
+          <div className="w-4 h-4 bg-green-500 rounded-full mr-2 border border-gray-300"></div>
+          <span className="text-xs text-gray-700">Cueilleurs</span>
         </div>
         <div className="flex items-center">
-          <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-          <span className="text-xs">Propriétaires</span>
+          <div className="w-4 h-4 bg-blue-500 rounded-full mr-2 border border-gray-300"></div>
+          <span className="text-xs text-gray-700">Propriétaires</span>
         </div>
       </div>
     </div>
