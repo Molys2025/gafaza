@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Mail, Phone, MapPin, Edit2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit2, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const OwnerMyProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -25,6 +26,16 @@ const OwnerMyProfile = () => {
     <div className="min-h-screen bg-sand-light py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <Link 
+              to="/owner-profile" 
+              className="flex items-center gap-2 text-olive-dark hover:text-olive transition-colors"
+            >
+              <ArrowLeft size={20} />
+              <span>Retour</span>
+            </Link>
+          </div>
+
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-olive-dark">Mon Profil</h1>
             <Button
