@@ -1,0 +1,115 @@
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { TreePine, MapPin, Calendar, Plus } from 'lucide-react';
+
+const OwnerOliveTrees = () => {
+  const oliveTrees = [
+    {
+      id: 1,
+      name: 'Oliveraie Nord',
+      location: 'Meknès - Secteur Nord',
+      trees: 120,
+      variety: 'Picholine',
+      lastHarvest: '2023-11-15',
+      estimatedYield: '2.5 tonnes'
+    },
+    {
+      id: 2,
+      name: 'Oliveraie Sud',
+      location: 'Meknès - Secteur Sud',
+      trees: 130,
+      variety: 'Arbequina',
+      lastHarvest: '2023-11-20',
+      estimatedYield: '3.2 tonnes'
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-sand-light py-8">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-olive-dark">Mes Oliviers</h1>
+            <Button className="bg-olive hover:bg-olive-dark flex items-center gap-2">
+              <Plus size={16} />
+              Ajouter une Oliveraie
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {oliveTrees.map((olive) => (
+              <Card key={olive.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-olive rounded-full flex items-center justify-center">
+                      <TreePine className="text-white" size={20} />
+                    </div>
+                    {olive.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <MapPin size={16} />
+                    <span>{olive.location}</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Nombre d'arbres</p>
+                      <p className="font-semibold text-olive-dark">{olive.trees}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Variété</p>
+                      <p className="font-semibold text-olive-dark">{olive.variety}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Dernière récolte</p>
+                      <p className="font-semibold text-olive-dark">{olive.lastHarvest}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Rendement estimé</p>
+                      <p className="font-semibold text-olive-dark">{olive.estimatedYield}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      Voir Détails
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      Planifier Récolte
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Card className="bg-olive/5 border-dashed border-2 border-olive/30">
+              <CardContent className="py-12">
+                <TreePine className="mx-auto text-olive/60 mb-4" size={48} />
+                <h3 className="text-lg font-semibold text-olive-dark mb-2">
+                  Ajoutez votre première oliveraie
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Commencez à gérer vos oliviers efficacement
+                </p>
+                <Button className="bg-olive hover:bg-olive-dark">
+                  Ajouter une Oliveraie
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OwnerOliveTrees;

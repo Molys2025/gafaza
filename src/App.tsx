@@ -8,6 +8,10 @@ import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import OwnerProfile from "./pages/OwnerProfile";
+import OwnerMyProfile from "./pages/OwnerMyProfile";
+import OwnerOliveTrees from "./pages/OwnerOliveTrees";
+import OwnerFindHarvesters from "./pages/OwnerFindHarvesters";
+import OwnerPayments from "./pages/OwnerPayments";
 import HarvesterProfile from "./pages/HarvesterProfile";
 import Messages from "./pages/Messages";
 import Payment from "./pages/Payment";
@@ -28,6 +32,10 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/search" element={<Search />} />
               <Route path="/owner-profile" element={<OwnerProfile />} />
+              <Route path="/owner-my-profile" element={<OwnerMyProfile />} />
+              <Route path="/owner-olive-trees" element={<OwnerOliveTrees />} />
+              <Route path="/owner-find-harvesters" element={<OwnerFindHarvesters />} />
+              <Route path="/owner-payments" element={<OwnerPayments />} />
               <Route path="/harvester-profile" element={<HarvesterProfile />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/payment" element={<Payment />} />
