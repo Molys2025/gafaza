@@ -1,8 +1,6 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -16,8 +14,10 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Remplacez cette ligne par votre token public Mapbox
+  const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNsdm5vMGIyMzFjaHAyanBjZmZpNms0ejgifQ.qQVVw-2Yh7Cr17wTbxjVbA';
 
   // Coordonnées approximatives des régions tunisiennes
   const regionCoordinates: { [key: string]: [number, number] } = {
@@ -48,48 +48,13 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   };
 
   useEffect(() => {
-    const getMapboxToken = async () => {
-      try {
-        console.log('Tentative de récupération du token Mapbox...');
-        
-        const { data, error } = await supabase.functions.invoke('get-secret', {
-          body: { name: 'MAPBOX_PUBLIC_TOKEN' }
-        });
-        
-        console.log('Réponse de la fonction:', { data, error });
-        
-        if (error) {
-          console.error('Erreur lors de la récupération du token Mapbox:', error);
-          setError(`Erreur de configuration de la carte: ${error.message || 'Erreur inconnue'}`);
-          setIsLoading(false);
-          return;
-        }
-        
-        if (data?.value) {
-          console.log('Token Mapbox récupéré avec succès');
-          setMapboxToken(data.value);
-        } else {
-          console.error('Token Mapbox non trouvé dans la réponse');
-          setError('Token Mapbox non configuré. Veuillez vérifier la configuration dans Supabase.');
-        }
-      } catch (err) {
-        console.error('Erreur lors de la récupération du token:', err);
-        setError('Erreur de connexion lors de la récupération du token Mapbox');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!mapContainer.current) return;
 
-    getMapboxToken();
-  }, []);
-
-  useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
-
-    console.log('Initialisation de la carte Mapbox...');
+    console.log('Initialisation de la carte Mapbox avec token...');
     
     try {
-      mapboxgl.accessToken = mapboxToken;
+      mapboxgl.accessToken = MAPBOX_TOKEN;
+      setIsLoading(false);
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -108,18 +73,19 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
 
       map.current.on('error', (e) => {
         console.error('Erreur Mapbox:', e);
-        setError('Erreur lors du chargement de la carte');
+        setError('Erreur lors du chargement de la carte. Vérifiez votre token Mapbox.');
       });
 
     } catch (err) {
       console.error('Erreur lors de l\'initialisation de la carte:', err);
       setError('Erreur lors de l\'initialisation de la carte');
+      setIsLoading(false);
     }
 
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken]);
+  }, []);
 
   useEffect(() => {
     if (isLoaded && map.current) {
@@ -228,7 +194,7 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
           <AlertDescription>
             {error}
             <div className="mt-2 text-sm">
-              Vérifiez que le token MAPBOX_PUBLIC_TOKEN est correctement configuré dans les secrets des Edge Functions de Supabase.
+              Pour utiliser Mapbox, vous devez remplacer le token par défaut par votre propre token public Mapbox dans le code.
             </div>
           </AlertDescription>
         </Alert>
@@ -236,13 +202,12 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
     );
   }
 
-  if (isLoading || !mapboxToken) {
+  if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md h-[500px] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-olive" />
           <p className="text-sm text-gray-500">Chargement de la carte...</p>
-          <p className="text-xs text-gray-400 mt-1">Récupération du token Mapbox...</p>
         </div>
       </div>
     );
