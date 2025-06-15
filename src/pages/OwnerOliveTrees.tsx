@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TreePine, MapPin, Calendar, Plus } from 'lucide-react';
+import { TreePine, MapPin, Calendar, Plus, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const OwnerOliveTrees = () => {
-  const oliveTrees = [
+  const { toast } = useToast();
+  const [oliveTrees, setOliveTrees] = useState([
     {
       id: 1,
       name: 'Oliveraie Nord',
@@ -24,15 +27,49 @@ const OwnerOliveTrees = () => {
       lastHarvest: '2023-11-20',
       estimatedYield: '3.2 tonnes'
     }
-  ];
+  ]);
+
+  const handleAddOliveGrove = () => {
+    toast({
+      title: "Ajouter une oliveraie",
+      description: "Fonctionnalité en cours de développement",
+    });
+  };
+
+  const handleViewDetails = (oliveName: string) => {
+    toast({
+      title: "Détails de l'oliveraie",
+      description: `Affichage des détails pour ${oliveName}`,
+    });
+  };
+
+  const handlePlanHarvest = (oliveName: string) => {
+    toast({
+      title: "Planifier la récolte",
+      description: `Planification de la récolte pour ${oliveName}`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-sand-light py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <Link 
+              to="/owner-profile" 
+              className="flex items-center gap-2 text-olive-dark hover:text-olive transition-colors"
+            >
+              <ArrowLeft size={20} />
+              <span>Retour</span>
+            </Link>
+          </div>
+
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-olive-dark">Mes Oliviers</h1>
-            <Button className="bg-olive hover:bg-olive-dark flex items-center gap-2">
+            <Button 
+              onClick={handleAddOliveGrove}
+              className="bg-olive hover:bg-olive-dark flex items-center gap-2"
+            >
               <Plus size={16} />
               Ajouter une Oliveraie
             </Button>
@@ -78,10 +115,20 @@ const OwnerOliveTrees = () => {
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleViewDetails(olive.name)}
+                    >
                       Voir Détails
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handlePlanHarvest(olive.name)}
+                    >
                       Planifier Récolte
                     </Button>
                   </div>
@@ -100,7 +147,10 @@ const OwnerOliveTrees = () => {
                 <p className="text-gray-600 mb-4">
                   Commencez à gérer vos oliviers efficacement
                 </p>
-                <Button className="bg-olive hover:bg-olive-dark">
+                <Button 
+                  onClick={handleAddOliveGrove}
+                  className="bg-olive hover:bg-olive-dark"
+                >
                   Ajouter une Oliveraie
                 </Button>
               </CardContent>
