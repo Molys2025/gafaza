@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,6 +12,8 @@ import { Upload, MapPin, Calendar, Briefcase, FileText, BadgeCheck, User } from 
 import { useToast } from "@/hooks/use-toast";
 import { useOnboarding } from '@/hooks/useOnboarding';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
+import { useAuth } from '@/hooks/useAuth';
+import { createHarvester, uploadProfilePicture, uploadIdCard } from '@/services/harvesterService';
 
 const formSchema = z.object({
   // Personal information
@@ -39,7 +40,11 @@ const HarvesterProfile = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [idCardFile, setIdCardFile] = useState<string | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [idCardImageFile, setIdCardImageFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,12 +80,93 @@ const HarvesterProfile = () => {
     setShowOnboarding(false);
   };
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    toast({
-      title: "Profil créé avec succès",
-      description: "Votre profil de cueilleur a été enregistré.",
-    });
+  const handleProfileImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setProfileImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleIdCardUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIdCardImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setIdCardFile(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour créer un profil.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    console.log('Submitting harvester profile:', values);
+
+    try {
+      // Prepare the data for the service
+      const harvesterData = {
+        fullName: values.fullName,
+        email: values.email,
+        phone: values.phone,
+        whatsapp: values.whatsapp,
+        experience: parseInt(values.experience),
+        skills: [values.skills], // Convert to array as expected by service
+        availabilityStart: values.availabilityStart,
+        availabilityEnd: values.availabilityEnd,
+        preferredRegions: [values.preferredRegions], // Convert to array as expected by service
+        dailyRate: parseFloat(values.dailyRate),
+        references: values.references,
+        additionalInfo: values.additionalInfo,
+      };
+
+      console.log('Creating harvester profile in database...');
+      await createHarvester(user.id, harvesterData);
+      console.log('Harvester profile created successfully');
+
+      // Upload profile picture if provided
+      if (profileImageFile) {
+        console.log('Uploading profile picture...');
+        await uploadProfilePicture(user.id, profileImageFile);
+        console.log('Profile picture uploaded successfully');
+      }
+
+      // Upload ID card if provided
+      if (idCardImageFile) {
+        console.log('Uploading ID card...');
+        await uploadIdCard(user.id, idCardImageFile);
+        console.log('ID card uploaded successfully');
+      }
+
+      toast({
+        title: "Profil créé avec succès",
+        description: "Votre profil de cueilleur a été enregistré en base de données.",
+      });
+
+    } catch (error: any) {
+      console.error('Error creating harvester profile:', error);
+      toast({
+        title: "Erreur lors de la création",
+        description: error.message || "Une erreur est survenue lors de la création de votre profil.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,14 +198,15 @@ const HarvesterProfile = () => {
                     ) : (
                       <User className="w-12 h-12 text-gray-400" />
                     )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md"
-                      type="button"
-                    >
+                    <label className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md cursor-pointer">
                       <Upload className="h-4 w-4" />
-                    </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileImageUpload}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
                   <div>
                     <h3 className="font-medium">Photo de profil</h3>
@@ -322,14 +409,15 @@ const HarvesterProfile = () => {
                     ) : (
                       <FileText className="w-12 h-12 text-gray-400" />
                     )}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="absolute bottom-2 right-2 bg-white rounded-md p-1 shadow-md"
-                      type="button"
-                    >
+                    <label className="absolute bottom-2 right-2 bg-white rounded-md p-1 shadow-md cursor-pointer">
                       <Upload className="h-4 w-4" />
-                    </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleIdCardUpload}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
                   <div>
                     <h3 className="font-medium">Carte d'identité</h3>
@@ -385,8 +473,8 @@ const HarvesterProfile = () => {
               <Button type="button" variant="outline">
                 Annuler
               </Button>
-              <Button type="submit" className="bg-olive hover:bg-olive-dark">
-                Créer mon profil
+              <Button type="submit" className="bg-olive hover:bg-olive-dark" disabled={isSubmitting}>
+                {isSubmitting ? "Création en cours..." : "Créer mon profil"}
               </Button>
             </div>
           </form>
