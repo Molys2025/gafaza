@@ -18,9 +18,11 @@ const Navbar = () => {
   return (
     <nav className="bg-olive text-white py-4 px-6 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold">
-          Zeytna
-        </Link>
+        <div className="flex-shrink-0 mr-8">
+          <Link to="/" className="text-2xl font-bold">
+            Zeytna
+          </Link>
+        </div>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-6">
