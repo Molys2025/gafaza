@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -9,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, MapPin, Calendar, Briefcase, FileText, BadgeCheck, User } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { useOnboarding } from '@/hooks/useOnboarding';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
@@ -37,6 +37,27 @@ const formSchema = z.object({
 const HarvesterProfile = () => {
   const { shouldShowOnboarding, markOnboardingComplete } = useOnboarding();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [idCardFile, setIdCardFile] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      whatsapp: "",
+      experience: "",
+      skills: "",
+      availabilityStart: "",
+      availabilityEnd: "",
+      preferredRegions: "",
+      dailyRate: "",
+      references: "",
+      additionalInfo: "",
+    },
+  });
 
   useEffect(() => {
     if (shouldShowOnboarding('harvester')) {
@@ -54,6 +75,14 @@ const HarvesterProfile = () => {
     setShowOnboarding(false);
   };
 
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log(values);
+    toast({
+      title: "Profil créé avec succès",
+      description: "Votre profil de cueilleur a été enregistré.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-sand-light py-8">
       {showOnboarding && (
@@ -65,15 +94,15 @@ const HarvesterProfile = () => {
       )}
       
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold text-olive-dark mb-6">{t('harvester.title')}</h1>
+        <h1 className="text-3xl font-bold text-olive-dark mb-6">Profil Cueilleur</h1>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Personal information */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('harvester.personalInfo')}</CardTitle>
-                <CardDescription>{t('harvester.personalInfoDesc')}</CardDescription>
+                <CardTitle>Informations personnelles</CardTitle>
+                <CardDescription>Vos informations de contact</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center mb-6">
@@ -93,8 +122,8 @@ const HarvesterProfile = () => {
                     </Button>
                   </div>
                   <div>
-                    <h3 className="font-medium">{t('harvester.profilePicture')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('harvester.profilePictureDesc')}</p>
+                    <h3 className="font-medium">Photo de profil</h3>
+                    <p className="text-sm text-muted-foreground">Ajoutez une photo pour vous présenter</p>
                   </div>
                 </div>
                 
@@ -103,9 +132,9 @@ const HarvesterProfile = () => {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('harvester.fullName')}</FormLabel>
+                      <FormLabel>Nom complet</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('harvester.fullName')} {...field} />
+                        <Input placeholder="Votre nom complet" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -118,7 +147,7 @@ const HarvesterProfile = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('harvester.email')}</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="votre@email.com" {...field} />
                         </FormControl>
@@ -132,7 +161,7 @@ const HarvesterProfile = () => {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('harvester.phone')}</FormLabel>
+                        <FormLabel>Téléphone</FormLabel>
                         <FormControl>
                           <Input placeholder="+216 XX XXX XXX" {...field} />
                         </FormControl>
@@ -147,11 +176,11 @@ const HarvesterProfile = () => {
                   name="whatsapp"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('harvester.whatsapp')}</FormLabel>
+                      <FormLabel>WhatsApp (optionnel)</FormLabel>
                       <FormControl>
                         <Input placeholder="+216 XX XXX XXX" {...field} />
                       </FormControl>
-                      <FormDescription>{t('harvester.whatsappDesc')}</FormDescription>
+                      <FormDescription>Pour faciliter la communication</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -162,8 +191,8 @@ const HarvesterProfile = () => {
             {/* Professional information */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('harvester.professionalInfo')}</CardTitle>
-                <CardDescription>{t('harvester.professionalInfoDesc')}</CardDescription>
+                <CardTitle>Informations professionnelles</CardTitle>
+                <CardDescription>Votre expérience et vos compétences</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -172,7 +201,7 @@ const HarvesterProfile = () => {
                     name="experience"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('harvester.experience')}</FormLabel>
+                        <FormLabel>Années d'expérience</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="0" {...field} />
                         </FormControl>
@@ -186,7 +215,7 @@ const HarvesterProfile = () => {
                     name="dailyRate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('harvester.dailyRate')}</FormLabel>
+                        <FormLabel>Tarif journalier (TND)</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="0" {...field} />
                         </FormControl>
@@ -201,18 +230,18 @@ const HarvesterProfile = () => {
                   name="skills"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('harvester.skills')}</FormLabel>
+                      <FormLabel>Compétences</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('harvester.skillsSelect')} />
+                            <SelectValue placeholder="Sélectionnez vos compétences" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="harvest">{t('harvester.harvest')}</SelectItem>
-                          <SelectItem value="maintenance">{t('harvester.maintenance')}</SelectItem>
-                          <SelectItem value="pruning">{t('harvester.pruning')}</SelectItem>
-                          <SelectItem value="all">{t('harvester.allSkills')}</SelectItem>
+                          <SelectItem value="harvest">Récolte uniquement</SelectItem>
+                          <SelectItem value="maintenance">Entretien des oliviers</SelectItem>
+                          <SelectItem value="pruning">Taille des arbres</SelectItem>
+                          <SelectItem value="all">Toutes les compétences</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -225,11 +254,11 @@ const HarvesterProfile = () => {
                   name="preferredRegions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('harvester.regions')}</FormLabel>
+                      <FormLabel>Régions préférées</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('harvester.regionsSelect')} />
+                            <SelectValue placeholder="Sélectionnez vos régions" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -238,10 +267,10 @@ const HarvesterProfile = () => {
                           <SelectItem value="sousse">Sousse</SelectItem>
                           <SelectItem value="nabeul">Nabeul</SelectItem>
                           <SelectItem value="monastir">Monastir</SelectItem>
-                          <SelectItem value="any">{t('harvester.anyRegion')}</SelectItem>
+                          <SelectItem value="any">Toute la Tunisie</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>{t('harvester.regionsDesc')}</FormDescription>
+                      <FormDescription>Où acceptez-vous de travailler</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -253,7 +282,7 @@ const HarvesterProfile = () => {
                     name="availabilityStart"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('harvester.availabilityStart')}</FormLabel>
+                        <FormLabel>Disponible à partir du</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -267,7 +296,7 @@ const HarvesterProfile = () => {
                     name="availabilityEnd"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('harvester.availabilityEnd')}</FormLabel>
+                        <FormLabel>Disponible jusqu'au</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -282,8 +311,8 @@ const HarvesterProfile = () => {
             {/* Documents */}
             <Card>
               <CardHeader>
-                <CardTitle>{t('harvester.documents')}</CardTitle>
-                <CardDescription>{t('harvester.documentsDesc')}</CardDescription>
+                <CardTitle>Documents</CardTitle>
+                <CardDescription>Références et documents officiels</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center mb-6">
@@ -303,11 +332,11 @@ const HarvesterProfile = () => {
                     </Button>
                   </div>
                   <div>
-                    <h3 className="font-medium">{t('harvester.idCard')}</h3>
+                    <h3 className="font-medium">Carte d'identité</h3>
                     <p className="text-sm text-muted-foreground">
-                      {t('harvester.idCardDesc')}
+                      Photo de votre carte d'identité
                       <span className="flex items-center text-xs text-orange-500 mt-1">
-                        <BadgeCheck className="h-3 w-3 mr-1" /> {t('harvester.idCardRequired')}
+                        <BadgeCheck className="h-3 w-3 mr-1" /> Requis pour la vérification
                       </span>
                     </p>
                   </div>
@@ -318,15 +347,15 @@ const HarvesterProfile = () => {
                   name="references"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('harvester.references')}</FormLabel>
+                      <FormLabel>Références</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder={t('harvester.referencesDesc')}
+                          placeholder="Noms et contacts de propriétaires pour qui vous avez travaillé"
                           className="min-h-[100px]"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>{t('harvester.referencesDesc')}</FormDescription>
+                      <FormDescription>Propriétaires qui peuvent témoigner de votre travail</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -337,10 +366,10 @@ const HarvesterProfile = () => {
                   name="additionalInfo"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('harvester.additionalInfo')}</FormLabel>
+                      <FormLabel>Informations supplémentaires</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder={t('harvester.additionalInfo')}
+                          placeholder="Autres informations pertinentes"
                           className="min-h-[100px]"
                           {...field}
                         />
@@ -354,10 +383,10 @@ const HarvesterProfile = () => {
 
             <div className="flex justify-end gap-4">
               <Button type="button" variant="outline">
-                {t('harvester.cancel')}
+                Annuler
               </Button>
               <Button type="submit" className="bg-olive hover:bg-olive-dark">
-                {t('harvester.createProfile')}
+                Créer mon profil
               </Button>
             </div>
           </form>
