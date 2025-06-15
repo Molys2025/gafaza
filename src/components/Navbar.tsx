@@ -1,9 +1,15 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,9 +42,21 @@ const Navbar = () => {
           <Link to="/evaluation" className="hover:text-sand transition-colors">
             {t('common.evaluations')}
           </Link>
-          <Link to="/about" className="hover:text-sand transition-colors">
-            {t('common.about')}
-          </Link>
+          
+          {/* Menu More avec À propos */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center hover:text-sand transition-colors">
+              Plus <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white text-olive-dark border border-gray-200 shadow-lg z-50">
+              <DropdownMenuItem asChild>
+                <Link to="/about" className="w-full px-4 py-2 hover:bg-sand-light">
+                  {t('common.about')}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark">
             <User className="mr-2 h-4 w-4" />
             {t('common.login')}
