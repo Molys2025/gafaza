@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -16,6 +17,7 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Coordonnées approximatives des régions tunisiennes
   const regionCoordinates: { [key: string]: [number, number] } = {
@@ -48,24 +50,33 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   useEffect(() => {
     const getMapboxToken = async () => {
       try {
+        console.log('Tentative de récupération du token Mapbox...');
+        
         const { data, error } = await supabase.functions.invoke('get-secret', {
           body: { name: 'MAPBOX_PUBLIC_TOKEN' }
         });
         
+        console.log('Réponse de la fonction:', { data, error });
+        
         if (error) {
           console.error('Erreur lors de la récupération du token Mapbox:', error);
-          setError('Erreur de configuration de la carte');
+          setError(`Erreur de configuration de la carte: ${error.message || 'Erreur inconnue'}`);
+          setIsLoading(false);
           return;
         }
         
         if (data?.value) {
+          console.log('Token Mapbox récupéré avec succès');
           setMapboxToken(data.value);
         } else {
-          setError('Token Mapbox non configuré');
+          console.error('Token Mapbox non trouvé dans la réponse');
+          setError('Token Mapbox non configuré. Veuillez vérifier la configuration dans Supabase.');
         }
       } catch (err) {
-        console.error('Erreur:', err);
-        setError('Erreur de connexion');
+        console.error('Erreur lors de la récupération du token:', err);
+        setError('Erreur de connexion lors de la récupération du token Mapbox');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -75,21 +86,35 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken) return;
 
-    mapboxgl.accessToken = mapboxToken;
+    console.log('Initialisation de la carte Mapbox...');
+    
+    try {
+      mapboxgl.accessToken = mapboxToken;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [9.5375, 33.8869], // Centre de la Tunisie
-      zoom: 6
-    });
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [9.5375, 33.8869], // Centre de la Tunisie
+        zoom: 6
+      });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    map.current.on('load', () => {
-      setIsLoaded(true);
-      addMarkersToMap();
-    });
+      map.current.on('load', () => {
+        console.log('Carte chargée avec succès');
+        setIsLoaded(true);
+        addMarkersToMap();
+      });
+
+      map.current.on('error', (e) => {
+        console.error('Erreur Mapbox:', e);
+        setError('Erreur lors du chargement de la carte');
+      });
+
+    } catch (err) {
+      console.error('Erreur lors de l\'initialisation de la carte:', err);
+      setError('Erreur lors de l\'initialisation de la carte');
+    }
 
     return () => {
       map.current?.remove();
@@ -105,13 +130,18 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   const addMarkersToMap = () => {
     if (!map.current) return;
 
+    console.log(`Ajout de ${results.length} marqueurs à la carte`);
+
     // Supprimer les anciens marqueurs
     const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
     existingMarkers.forEach(marker => marker.remove());
 
     results.forEach((result) => {
       const coordinates = regionCoordinates[result.location];
-      if (!coordinates) return;
+      if (!coordinates) {
+        console.warn(`Coordonnées non trouvées pour la localisation: ${result.location}`);
+        return;
+      }
 
       // Ajouter un peu de variation pour éviter la superposition exacte
       const offsetLng = (Math.random() - 0.5) * 0.1;
@@ -195,18 +225,24 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error}
+            <div className="mt-2 text-sm">
+              Vérifiez que le token MAPBOX_PUBLIC_TOKEN est correctement configuré dans les secrets des Edge Functions de Supabase.
+            </div>
+          </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  if (!mapboxToken) {
+  if (isLoading || !mapboxToken) {
     return (
       <div className="bg-white rounded-lg shadow-md h-[500px] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-olive" />
           <p className="text-sm text-gray-500">Chargement de la carte...</p>
+          <p className="text-xs text-gray-400 mt-1">Récupération du token Mapbox...</p>
         </div>
       </div>
     );
