@@ -11,9 +11,12 @@ export const useMapboxToken = () => {
     try {
       console.log('Récupération du token Mapbox depuis l\'Edge Function...');
       
+      // Utilisation directe de la fonction get-secret existante
       const { data, error } = await supabase.functions.invoke('get-secret', {
         body: { name: 'MAPBOX_PUBLIC_TOKEN' }
       });
+
+      console.log('Réponse Edge Function:', { data, error });
 
       if (error) {
         console.error('Erreur lors de la récupération du token:', error);
@@ -21,16 +24,16 @@ export const useMapboxToken = () => {
       }
 
       if (data && data.value) {
-        console.log('Token Mapbox récupéré avec succès');
+        console.log('Token Mapbox récupéré avec succès, longueur:', data.value.length);
         setMapboxToken(data.value);
         setError(null);
       } else {
         console.error('Token non trouvé dans la réponse:', data);
-        throw new Error('Token Mapbox non configuré dans Supabase. Veuillez ajouter MAPBOX_PUBLIC_TOKEN dans les secrets Edge Function.');
+        throw new Error('Token Mapbox non configuré. Vérifiez que MAPBOX_PUBLIC_TOKEN est défini dans les secrets Supabase.');
       }
     } catch (err) {
       console.error('Erreur lors de la récupération du token:', err);
-      setError(err instanceof Error ? err.message : 'Erreur de connexion à Supabase');
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setIsLoading(false);
     }
@@ -40,5 +43,5 @@ export const useMapboxToken = () => {
     fetchMapboxToken();
   }, []);
 
-  return { mapboxToken, isLoading, error };
+  return { mapboxToken, isLoading, error, refetch: fetchMapboxToken };
 };

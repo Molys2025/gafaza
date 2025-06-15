@@ -2,8 +2,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { useMapboxToken } from './hooks/useMapboxToken';
 import { MapLegend } from './components/MapLegend';
 import { regionCoordinates } from './constants/regionCoordinates';
@@ -18,12 +19,19 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const { mapboxToken, isLoading, error } = useMapboxToken();
+  const { mapboxToken, isLoading, error, refetch } = useMapboxToken();
 
   const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken.trim()) return;
+    if (!mapContainer.current || !mapboxToken.trim()) {
+      console.log('Conditions non remplies pour initialiser la carte:', {
+        hasContainer: !!mapContainer.current,
+        hasToken: !!mapboxToken.trim(),
+        tokenLength: mapboxToken.length
+      });
+      return;
+    }
 
-    console.log('Initialisation de la carte Mapbox...');
+    console.log('Initialisation de la carte Mapbox avec token de longueur:', mapboxToken.length);
     
     try {
       mapboxgl.accessToken = mapboxToken;
@@ -107,21 +115,20 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {error}
-            <div className="mt-2 text-sm">
-              {error.includes('MAPBOX_PUBLIC_TOKEN') ? (
-                <div>
-                  <p>Pour configurer le token Mapbox :</p>
-                  <ol className="list-decimal list-inside mt-1 space-y-1">
-                    <li>Allez dans votre projet Supabase</li>
-                    <li>Naviguez vers Edge Functions → Secrets</li>
-                    <li>Ajoutez un nouveau secret nommé "MAPBOX_PUBLIC_TOKEN"</li>
-                    <li>Collez votre token public Mapbox obtenu sur <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">account.mapbox.com</a></li>
-                  </ol>
-                </div>
-              ) : (
-                <p>Vérifiez votre connexion internet et les paramètres Supabase.</p>
-              )}
+            <div className="space-y-3">
+              <p className="font-medium">Erreur de chargement de la carte:</p>
+              <p className="text-sm">{error}</p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={refetch}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Réessayer
+                </Button>
+              </div>
             </div>
           </AlertDescription>
         </Alert>
