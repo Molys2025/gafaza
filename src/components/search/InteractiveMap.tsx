@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,9 +16,7 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Remplacez cette ligne par votre token public Mapbox
-  const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNsdm5vMGIyMzFjaHAyanBjZmZpNms0ejgifQ.qQVVw-2Yh7Cr17wTbxjVbA';
+  const [mapboxToken, setMapboxToken] = useState('');
 
   // Coordonnées approximatives des régions tunisiennes
   const regionCoordinates: { [key: string]: [number, number] } = {
@@ -47,14 +46,13 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
     'Kebili': [8.9690, 33.7047]
   };
 
-  useEffect(() => {
-    if (!mapContainer.current) return;
+  const initializeMap = () => {
+    if (!mapContainer.current || !mapboxToken.trim()) return;
 
-    console.log('Initialisation de la carte Mapbox avec token...');
+    console.log('Initialisation de la carte Mapbox...');
     
     try {
-      mapboxgl.accessToken = MAPBOX_TOKEN;
-      setIsLoading(false);
+      mapboxgl.accessToken = mapboxToken;
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -68,12 +66,14 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
       map.current.on('load', () => {
         console.log('Carte chargée avec succès');
         setIsLoaded(true);
+        setIsLoading(false);
         addMarkersToMap();
       });
 
       map.current.on('error', (e) => {
         console.error('Erreur Mapbox:', e);
-        setError('Erreur lors du chargement de la carte. Vérifiez votre token Mapbox.');
+        setError('Erreur lors du chargement de la carte. Vérifiez que votre token Mapbox est valide.');
+        setIsLoading(false);
       });
 
     } catch (err) {
@@ -81,11 +81,17 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
       setError('Erreur lors de l\'initialisation de la carte');
       setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (mapboxToken.trim()) {
+      initializeMap();
+    }
 
     return () => {
       map.current?.remove();
     };
-  }, []);
+  }, [mapboxToken]);
 
   useEffect(() => {
     if (isLoaded && map.current) {
@@ -186,6 +192,36 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
     });
   };
 
+  if (!mapboxToken.trim()) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2">Configuration requise</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Pour afficher la carte, veuillez entrer votre token public Mapbox :
+          </p>
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Entrez votre token public Mapbox"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-olive"
+              value={mapboxToken}
+              onChange={(e) => setMapboxToken(e.target.value)}
+            />
+            <div className="text-xs text-gray-500">
+              <p>Pour obtenir votre token :</p>
+              <ol className="list-decimal list-inside mt-1 space-y-1">
+                <li>Allez sur <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">account.mapbox.com</a></li>
+                <li>Créez un compte ou connectez-vous</li>
+                <li>Copiez votre "Default public token"</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -194,7 +230,7 @@ const InteractiveMap = ({ results, filters }: InteractiveMapProps) => {
           <AlertDescription>
             {error}
             <div className="mt-2 text-sm">
-              Pour utiliser Mapbox, vous devez remplacer le token par défaut par votre propre token public Mapbox dans le code.
+              Vérifiez que votre token Mapbox est valide et que vous avez une connexion internet.
             </div>
           </AlertDescription>
         </Alert>
