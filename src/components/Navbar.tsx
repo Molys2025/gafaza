@@ -72,10 +72,10 @@ const Navbar = () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark">
-                  <User className="mr-2 h-4 w-4" />
-                  {user.email?.split('@')[0]}
-                  <ChevronDown className="ml-2 h-4 w-4" />
+                <Button variant="outline" size="sm" className="bg-olive-light text-white hover:bg-olive-dark border-olive-light">
+                  <User className="mr-1 h-3 w-3" />
+                  <span className="hidden lg:inline">{user.email?.split('@')[0]}</span>
+                  <ChevronDown className="ml-1 h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white text-olive-dark border border-gray-200 shadow-lg z-50">
@@ -92,10 +92,11 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark" asChild>
+            <Button variant="outline" size="sm" className="bg-olive-light text-white hover:bg-olive-dark border-olive-light" asChild>
               <Link to="/auth">
-                <User className="mr-2 h-4 w-4" />
-                {t('common.login')}
+                <User className="mr-1 h-3 w-3" />
+                <span className="hidden lg:inline">{t('common.login')}</span>
+                <span className="lg:hidden">Login</span>
               </Link>
             </Button>
           )}

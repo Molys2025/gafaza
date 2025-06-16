@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import OwnerProfile from "./pages/OwnerProfile";
 import OwnerMyProfile from "./pages/OwnerMyProfile";
@@ -34,6 +35,7 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/search" element={<Search />} />
               <Route path="/owner-profile" element={<OwnerProfile />} />
               <Route path="/owner-my-profile" element={<OwnerMyProfile />} />
