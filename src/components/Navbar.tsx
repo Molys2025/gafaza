@@ -1,19 +1,28 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, User, ChevronDown } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, User, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <nav className="bg-olive text-white py-4 px-6 shadow-md">
@@ -59,10 +68,37 @@ const Navbar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark">
-            <User className="mr-2 h-4 w-4" />
-            {t('common.login')}
-          </Button>
+          {/* Auth Section */}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark">
+                  <User className="mr-2 h-4 w-4" />
+                  {user.email?.split('@')[0]}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white text-olive-dark border border-gray-200 shadow-lg z-50">
+                <DropdownMenuItem asChild>
+                  <Link to="/owner-profile" className="w-full px-4 py-2 hover:bg-sand-light">
+                    Mon profil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="w-full px-4 py-2 hover:bg-sand-light cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Déconnexion
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark" asChild>
+              <Link to="/auth">
+                <User className="mr-2 h-4 w-4" />
+                {t('common.login')}
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -99,10 +135,32 @@ const Navbar = () => {
             <Link to="/about" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
               {t('common.about')}
             </Link>
-            <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark w-full">
-              <User className="mr-2 h-4 w-4" />
-              {t('common.login')}
-            </Button>
+            
+            {user ? (
+              <>
+                <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                  Mon profil
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="bg-olive-light text-white hover:bg-olive-dark w-full"
+                  onClick={() => {
+                    handleSignOut();
+                    setIsOpen(false);
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" className="bg-olive-light text-white hover:bg-olive-dark w-full" asChild>
+                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                  <User className="mr-2 h-4 w-4" />
+                  {t('common.login')}
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       )}

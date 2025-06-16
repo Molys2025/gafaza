@@ -17,6 +17,7 @@ export const useAuth = () => {
       
       if (error) {
         console.error('Error getting session:', error.message);
+        setLoading(false);
         return;
       }
       
@@ -41,9 +42,14 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string) => {
     try {
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
       });
 
       if (error) throw error;
@@ -55,6 +61,7 @@ export const useAuth = () => {
       
       return true;
     } catch (error: any) {
+      console.error('SignUp error:', error);
       toast({
         title: 'Erreur',
         description: error.message,
@@ -80,6 +87,7 @@ export const useAuth = () => {
       
       return true;
     } catch (error: any) {
+      console.error('SignIn error:', error);
       toast({
         title: 'Erreur de connexion',
         description: error.message,
@@ -99,6 +107,7 @@ export const useAuth = () => {
         description: 'Vous avez été déconnecté avec succès.',
       });
     } catch (error: any) {
+      console.error('SignOut error:', error);
       toast({
         title: 'Erreur de déconnexion',
         description: error.message,
