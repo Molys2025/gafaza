@@ -47,10 +47,10 @@ function App() {
               <Route path="/owner-add-olive-grove" element={<ProtectedRoute><OwnerAddOliveGrove /></ProtectedRoute>} />
               <Route path="/owner-find-harvesters" element={<ProtectedRoute><OwnerFindHarvesters /></ProtectedRoute>} />
               <Route path="/owner-payments" element={<ProtectedRoute><OwnerPayments /></ProtectedRoute>} />
-              <Route path="/harvester-profile" element={<HarvesterProfile />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/payment" element={<Payment />} />
-              <Route path="/evaluation" element={<Evaluation />} />
+              <Route path="/harvester-profile" element={<ProtectedRoute><HarvesterProfile /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+              <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />
             </Routes>
             <LanguageToggle />
             <Toaster />
