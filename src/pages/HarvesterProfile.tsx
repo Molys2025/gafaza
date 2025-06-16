@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,7 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useOnboarding } from '@/hooks/useOnboarding';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import { useAuth } from '@/hooks/useAuth';
-import { createHarvester, uploadProfilePicture, uploadIdCard } from '@/services/harvesterService';
+import { createHarvester, uploadProfilePicture, uploadIdCard, getHarvesterProfile } from '@/services/harvesterService';
+import { useNavigate } from 'react-router-dom';
 
 const formSchema = z.object({
   // Personal information
@@ -43,8 +45,11 @@ const HarvesterProfile = () => {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [idCardImageFile, setIdCardImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingProfile, setExistingProfile] = useState(null);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,11 +69,68 @@ const HarvesterProfile = () => {
     },
   });
 
+  // Check if user is authenticated
   useEffect(() => {
-    if (shouldShowOnboarding('harvester')) {
+    if (!authLoading && !user) {
+      toast({
+        title: "Authentification requise",
+        description: "Vous devez être connecté pour accéder à cette page.",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
+    }
+  }, [user, authLoading, navigate, toast]);
+
+  // Load existing profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        const profile = await getHarvesterProfile(user.id);
+        
+        if (profile) {
+          setExistingProfile(profile);
+          // Pre-fill form with existing data
+          form.reset({
+            fullName: profile.full_name || "",
+            email: user.email || "",
+            phone: profile.phone || "",
+            whatsapp: profile.whatsapp || "",
+            experience: profile.experience_years?.toString() || "",
+            skills: profile.skills?.[0] || "",
+            availabilityStart: profile.availability_start || "",
+            availabilityEnd: profile.availability_end || "",
+            preferredRegions: profile.preferred_regions?.[0] || "",
+            dailyRate: profile.daily_rate?.toString() || "",
+            references: "",
+            additionalInfo: profile.bio || "",
+          });
+          
+          if (profile.profile_picture) {
+            setProfileImage(profile.profile_picture);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        // Don't show error toast for missing profile - it's expected for new users
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user && !authLoading) {
+      loadProfile();
+    }
+  }, [user, authLoading, form]);
+
+  useEffect(() => {
+    if (shouldShowOnboarding('harvester') && !existingProfile) {
       setShowOnboarding(true);
     }
-  }, [shouldShowOnboarding]);
+  }, [shouldShowOnboarding, existingProfile]);
 
   const handleOnboardingComplete = () => {
     markOnboardingComplete('harvester');
@@ -153,9 +215,14 @@ const HarvesterProfile = () => {
       }
 
       toast({
-        title: "Profil créé avec succès",
-        description: "Votre profil de cueilleur a été enregistré en base de données.",
+        title: existingProfile ? "Profil mis à jour" : "Profil créé avec succès",
+        description: existingProfile ? 
+          "Votre profil de cueilleur a été mis à jour." :
+          "Votre profil de cueilleur a été enregistré en base de données.",
       });
+
+      // Redirect to dashboard or search page
+      navigate('/search');
 
     } catch (error: any) {
       console.error('Error creating harvester profile:', error);
@@ -169,6 +236,21 @@ const HarvesterProfile = () => {
     }
   };
 
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-sand-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-olive"></div>
+          <p className="mt-4 text-olive-dark">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className="min-h-screen bg-sand-light py-8">
       {showOnboarding && (
@@ -180,7 +262,9 @@ const HarvesterProfile = () => {
       )}
       
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold text-olive-dark mb-6">Profil Cueilleur</h1>
+        <h1 className="text-3xl font-bold text-olive-dark mb-6">
+          {existingProfile ? "Modifier mon profil cueilleur" : "Profil Cueilleur"}
+        </h1>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -470,11 +554,14 @@ const HarvesterProfile = () => {
             </Card>
 
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" onClick={() => navigate('/search')}>
                 Annuler
               </Button>
               <Button type="submit" className="bg-olive hover:bg-olive-dark" disabled={isSubmitting}>
-                {isSubmitting ? "Création en cours..." : "Créer mon profil"}
+                {isSubmitting ? 
+                  (existingProfile ? "Mise à jour en cours..." : "Création en cours...") : 
+                  (existingProfile ? "Mettre à jour mon profil" : "Créer mon profil")
+                }
               </Button>
             </div>
           </form>

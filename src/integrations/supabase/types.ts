@@ -1986,6 +1986,14 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_group_unread_count: {
         Args: { group_id_param: string; user_id_param: string }
         Returns: number

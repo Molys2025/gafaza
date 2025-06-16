@@ -1,7 +1,7 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
-interface HarvesterData {
+export interface HarvesterData {
   fullName: string;
   email: string;
   phone: string;
@@ -16,97 +16,159 @@ interface HarvesterData {
   additionalInfo?: string;
 }
 
-export const createHarvester = async (userId: string, harvesterData: HarvesterData) => {
-  const { data, error } = await supabase
-    .from('harvesters')
-    .insert([{
+export const createHarvester = async (userId: string, data: HarvesterData) => {
+  console.log('Creating harvester profile for user:', userId);
+  
+  // First, update the user's basic information and role
+  const { error: userError } = await supabase
+    .from('users')
+    .upsert({
       id: userId,
-      full_name: harvesterData.fullName,
-      phone: harvesterData.phone,
-      whatsapp: harvesterData.whatsapp,
-      experience: harvesterData.experience,
-      skills: harvesterData.skills,
-      availability: [harvesterData.availabilityStart, harvesterData.availabilityEnd],
-      preferred_regions: harvesterData.preferredRegions,
-      daily_rate: harvesterData.dailyRate,
-      created_at: new Date(),
-      updated_at: new Date()
-    }]);
+      first_name: data.fullName.split(' ')[0],
+      last_name: data.fullName.split(' ').slice(1).join(' '),
+      email: data.email,
+      phone: data.phone,
+      whatsapp: data.whatsapp,
+      role: 'job_seeker'
+    });
 
-  if (error) {
-    throw error;
+  if (userError) {
+    console.error('Error updating user:', userError);
+    throw new Error(`Erreur lors de la mise à jour du profil utilisateur: ${userError.message}`);
   }
 
-  return data;
+  // Then create the job seeker profile
+  const { error: harvesterError } = await supabase
+    .from('job_seekers')
+    .upsert({
+      id: userId,
+      full_name: data.fullName,
+      phone: data.phone,
+      whatsapp: data.whatsapp,
+      experience_years: data.experience,
+      skills: data.skills,
+      availability_start: data.availabilityStart,
+      availability_end: data.availabilityEnd,
+      preferred_regions: data.preferredRegions,
+      daily_rate: data.dailyRate,
+      bio: data.additionalInfo
+    });
+
+  if (harvesterError) {
+    console.error('Error creating harvester profile:', harvesterError);
+    throw new Error(`Erreur lors de la création du profil cueilleur: ${harvesterError.message}`);
+  }
+
+  console.log('Harvester profile created successfully');
 };
 
-export const getHarvester = async (harvesterId: string) => {
+export const uploadProfilePicture = async (userId: string, file: File) => {
+  console.log('Uploading profile picture for user:', userId);
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}/profile.${fileExt}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, {
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('Error uploading profile picture:', uploadError);
+    throw new Error(`Erreur lors du téléchargement de la photo: ${uploadError.message}`);
+  }
+
+  // Get the public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName);
+
+  // Update user profile with the image URL
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({ profile_picture: publicUrl })
+    .eq('id', userId);
+
+  if (updateError) {
+    console.error('Error updating profile picture URL:', updateError);
+    throw new Error(`Erreur lors de la mise à jour de l'URL de la photo: ${updateError.message}`);
+  }
+
+  // Also update the job seeker profile
+  const { error: jobSeekerUpdateError } = await supabase
+    .from('job_seekers')
+    .update({ profile_picture: publicUrl })
+    .eq('id', userId);
+
+  if (jobSeekerUpdateError) {
+    console.error('Error updating job seeker profile picture:', jobSeekerUpdateError);
+    // Don't throw here as the main upload succeeded
+  }
+
+  console.log('Profile picture uploaded successfully');
+};
+
+export const uploadIdCard = async (userId: string, file: File) => {
+  console.log('Uploading ID card for user:', userId);
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}/id_card.${fileExt}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('documents')
+    .upload(fileName, file, {
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('Error uploading ID card:', uploadError);
+    throw new Error(`Erreur lors du téléchargement de la carte d'identité: ${uploadError.message}`);
+  }
+
+  console.log('ID card uploaded successfully');
+};
+
+export const getHarvesterProfile = async (userId: string) => {
+  console.log('Getting harvester profile for user:', userId);
+  
   const { data, error } = await supabase
-    .from('harvesters')
+    .from('job_seekers')
     .select('*')
-    .eq('id', harvesterId)
+    .eq('id', userId)
     .single();
 
-  if (error) {
-    throw error;
+  if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+    console.error('Error getting harvester profile:', error);
+    throw new Error(`Erreur lors de la récupération du profil: ${error.message}`);
   }
 
   return data;
 };
 
-export const updateHarvester = async (harvesterId: string, harvesterData: Partial<HarvesterData>) => {
-  const updates: any = {};
-
-  if (harvesterData.fullName) updates.full_name = harvesterData.fullName;
-  if (harvesterData.phone) updates.phone = harvesterData.phone;
-  if (harvesterData.whatsapp !== undefined) updates.whatsapp = harvesterData.whatsapp;
-  if (harvesterData.experience !== undefined) updates.experience = harvesterData.experience;
-  if (harvesterData.skills !== undefined) updates.skills = harvesterData.skills;
-  if (harvesterData.availabilityStart && harvesterData.availabilityEnd) {
-    updates.availability = [harvesterData.availabilityStart, harvesterData.availabilityEnd];
-  }
-  if (harvesterData.preferredRegions !== undefined) updates.preferred_regions = harvesterData.preferredRegions;
-  if (harvesterData.dailyRate !== undefined) updates.daily_rate = harvesterData.dailyRate;
-  updates.updated_at = new Date();
-
-  const { data, error } = await supabase
-    .from('harvesters')
-    .update(updates)
-    .eq('id', harvesterId);
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-};
-
-export const uploadIdCard = async (harvesterId: string, file: File) => {
-  const { data, error } = await supabase
-    .storage
-    .from('id-cards')
-    .upload(`${harvesterId}/id-card`, file, {
-      upsert: true,
-    });
+export const updateHarvesterProfile = async (userId: string, updates: Partial<HarvesterData>) => {
+  console.log('Updating harvester profile for user:', userId);
+  
+  const { error } = await supabase
+    .from('job_seekers')
+    .update({
+      full_name: updates.fullName,
+      phone: updates.phone,
+      whatsapp: updates.whatsapp,
+      experience_years: updates.experience,
+      skills: updates.skills,
+      availability_start: updates.availabilityStart,
+      availability_end: updates.availabilityEnd,
+      preferred_regions: updates.preferredRegions,
+      daily_rate: updates.dailyRate,
+      bio: updates.additionalInfo
+    })
+    .eq('id', userId);
 
   if (error) {
-    throw error;
+    console.error('Error updating harvester profile:', error);
+    throw new Error(`Erreur lors de la mise à jour du profil: ${error.message}`);
   }
 
-  return data;
-};
-
-export const uploadProfilePicture = async (harvesterId: string, file: File) => {
-  const { data, error } = await supabase
-    .storage
-    .from('profile-pictures')
-    .upload(`${harvesterId}/profile`, file, {
-      upsert: true,
-    });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  console.log('Harvester profile updated successfully');
 };
