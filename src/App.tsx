@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Search from "./pages/Search";
@@ -37,15 +38,15 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/search" element={<Search />} />
-              <Route path="/owner-profile" element={<OwnerProfile />} />
-              <Route path="/owner-my-profile" element={<OwnerMyProfile />} />
-              <Route path="/owner-olive-trees" element={<OwnerOliveTrees />} />
-              <Route path="/owner-olive-tree-details" element={<OwnerOliveTreeDetails />} />
-              <Route path="/owner-edit-olive-grove" element={<OwnerEditOliveGrove />} />
-              <Route path="/owner-plan-harvest" element={<OwnerPlanHarvest />} />
-              <Route path="/owner-add-olive-grove" element={<OwnerAddOliveGrove />} />
-              <Route path="/owner-find-harvesters" element={<OwnerFindHarvesters />} />
-              <Route path="/owner-payments" element={<OwnerPayments />} />
+              <Route path="/owner-profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
+              <Route path="/owner-my-profile" element={<ProtectedRoute><OwnerMyProfile /></ProtectedRoute>} />
+              <Route path="/owner-olive-trees" element={<ProtectedRoute><OwnerOliveTrees /></ProtectedRoute>} />
+              <Route path="/owner-olive-tree-details" element={<ProtectedRoute><OwnerOliveTreeDetails /></ProtectedRoute>} />
+              <Route path="/owner-edit-olive-grove" element={<ProtectedRoute><OwnerEditOliveGrove /></ProtectedRoute>} />
+              <Route path="/owner-plan-harvest" element={<ProtectedRoute><OwnerPlanHarvest /></ProtectedRoute>} />
+              <Route path="/owner-add-olive-grove" element={<ProtectedRoute><OwnerAddOliveGrove /></ProtectedRoute>} />
+              <Route path="/owner-find-harvesters" element={<ProtectedRoute><OwnerFindHarvesters /></ProtectedRoute>} />
+              <Route path="/owner-payments" element={<ProtectedRoute><OwnerPayments /></ProtectedRoute>} />
               <Route path="/harvester-profile" element={<HarvesterProfile />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/payment" element={<Payment />} />
