@@ -2,28 +2,31 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Trees, Users, Search, MessageCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Index = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-sand-light">
       {/* Hero Section */}
       <section className="relative py-20 px-6">
         <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-olive-dark mb-6 animate-fadeIn">
-            Connectez-vous à la récolte d'olives
+            {t('home.heroTitle')}
           </h1>
           <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto animate-fadeIn">
-            La première plateforme tunisienne qui met en relation les propriétaires d'oliviers et les cueilleurs professionnels.
+            {t('home.heroSubtitle')}
           </p>
           <div className="flex flex-col md:flex-row gap-4 justify-center animate-fadeIn">
             <Button className="bg-olive hover:bg-olive-dark text-white px-8 py-6 text-lg" asChild>
               <Link to="/owner-profile">
-                Je suis propriétaire
+                {t('home.ownerButton')}
               </Link>
             </Button>
             <Button className="bg-olive-dark hover:bg-olive text-white px-8 py-6 text-lg" asChild>
               <Link to="/harvester-profile">
-                Je suis cueilleur
+                {t('home.harvesterButton')}
               </Link>
             </Button>
           </div>
@@ -34,29 +37,29 @@ const Index = () => {
       <section className="py-16 px-6 bg-white">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center text-olive-dark mb-12">
-            Comment ça marche ?
+            {t('home.howItWorks')}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="bg-olive/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-olive" />
               </div>
-              <h3 className="text-xl font-semibold text-olive-dark mb-2">Créez votre profil</h3>
-              <p className="text-gray-600">Inscrivez-vous en tant que propriétaire ou cueilleur et complétez votre profil.</p>
+              <h3 className="text-xl font-semibold text-olive-dark mb-2">{t('home.createProfile')}</h3>
+              <p className="text-gray-600">{t('home.createProfileDesc')}</p>
             </div>
             <div className="text-center p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="bg-olive/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-olive" />
               </div>
-              <h3 className="text-xl font-semibold text-olive-dark mb-2">Trouvez votre match</h3>
-              <p className="text-gray-600">Recherchez des propriétaires ou des cueilleurs selon vos critères.</p>
+              <h3 className="text-xl font-semibold text-olive-dark mb-2">{t('home.findMatch')}</h3>
+              <p className="text-gray-600">{t('home.findMatchDesc')}</p>
             </div>
             <div className="text-center p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="bg-olive/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8 text-olive" />
               </div>
-              <h3 className="text-xl font-semibold text-olive-dark mb-2">Communiquez</h3>
-              <p className="text-gray-600">Discutez et planifiez la récolte via notre système de messagerie sécurisé.</p>
+              <h3 className="text-xl font-semibold text-olive-dark mb-2">{t('home.communicate')}</h3>
+              <p className="text-gray-600">{t('home.communicateDesc')}</p>
             </div>
           </div>
         </div>

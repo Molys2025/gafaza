@@ -22,7 +22,7 @@ import HarvesterProfile from "./pages/HarvesterProfile";
 import Messages from "./pages/Messages";
 import Payment from "./pages/Payment";
 import Evaluation from "./pages/Evaluation";
-import LanguageToggle from "./components/LanguageToggle";
+import LanguageSelector from "./components/LanguageSelector";
 import "./i18n/config";
 
 const queryClient = new QueryClient();
@@ -52,7 +52,7 @@ function App() {
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />
             </Routes>
-            <LanguageToggle />
+            <LanguageSelector />
             <Toaster />
           </BrowserRouter>
         </TooltipProvider>
