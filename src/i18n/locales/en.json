@@ -1,4 +1,3 @@
-
 {
   "common": {
     "search": "Search",
@@ -44,7 +43,15 @@
     "findMatch": "Find your match",
     "findMatchDesc": "Search for owners or harvesters according to your criteria.",
     "communicate": "Communicate",
-    "communicateDesc": "Discuss and plan the harvest via our secure messaging system."
+    "communicateDesc": "Discuss and plan the harvest via our secure messaging system.",
+    "story": "Our Story",
+    "storyTitle": "The Zeytna Story: When a personal struggle becomes a solution for everyone",
+    "storyPart1": "It all started with an olive grove, a dream come true. But very quickly, a question arose: how to find reliable and competent harvesters, especially if my father could no longer help me? The idea of an unnamed struggle, especially for those who live far away and manage their olive trees remotely, germinated in my mind.",
+    "storyPart2": "From this questioning was born Zeytna, the platform that connects olive tree owners with motivated and competent harvesters. Imagine a marketplace where trust reigns, where payments are secure and released once the work is completed.",
+    "storyPart3": "But Zeytna is much more than just matchmaking. It's a desire to modernize and secure the work of harvesters. That's why I have put in place two innovative mechanisms:",
+    "storyCNSS": "CNSS contribution directly from the platform: To offer harvesters essential stability and social security (health insurance and retirement).",
+    "storyCare": "Zeytna Care: Specific insurance for work accidents, because their safety is my priority.",
+    "storyConclusion": "I am proud to contribute to a system that simplifies the lives of thousands of people, creating a bond of trust between owners and harvesters. Zeytna is much more than a platform, it's a community that grows together."
   },
   "search": {
     "title": "Search for owners or harvesters",

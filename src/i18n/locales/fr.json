@@ -1,4 +1,3 @@
-
 {
   "common": {
     "search": "Rechercher",
@@ -44,7 +43,15 @@
     "findMatch": "Trouvez votre match",
     "findMatchDesc": "Recherchez des propriétaires ou des cueilleurs selon vos critères.",
     "communicate": "Communiquez",
-    "communicateDesc": "Discutez et planifiez la récolte via notre système de messagerie sécurisé."
+    "communicateDesc": "Discutez et planifiez la récolte via notre système de messagerie sécurisé.",
+    "story": "Notre Histoire",
+    "storyTitle": "L'histoire de Zeytna : Quand une galère personnelle devient une solution pour tous",
+    "storyPart1": "Tout a commencé avec un terrain d'oliviers, un rêve devenu réalité. Mais très vite, une question s'est posée : comment faire pour trouver des cueilleurs fiables et compétents, surtout si mon père ne pouvait plus m'aider ? L'idée d'une galère sans nom, surtout pour ceux qui vivent loin et gèrent leurs oliviers à distance, a germé dans mon esprit.",
+    "storyPart2": "C'est de cette interrogation qu'est née Zeytna, la plateforme qui connecte les propriétaires d'oliviers avec des cueilleurs motivés et compétents. Imaginez une marketplace où la confiance est reine, où les paiements sont sécurisés et débloqués une fois le travail accompli.",
+    "storyPart3": "Mais Zeytna, c'est bien plus qu'une simple mise en relation. C'est une volonté de moderniser et de sécuriser le travail des cueilleurs. C'est pourquoi j'ai mis en place deux dispositifs innovants :",
+    "storyCNSS": "La cotisation au CNSS directement depuis la plateforme : Pour offrir aux cueilleurs une stabilité et une sécurité sociale indispensables (assurance maladie et retraite).",
+    "storyCare": "Zeytna Care : Une assurance spécifique pour les accidents de travail, parce que leur sécurité est ma priorité.",
+    "storyConclusion": "Je suis fier de contribuer à un système qui simplifie la vie de milliers de personnes, en créant un lien de confiance entre propriétaires et cueilleurs. Zeytna, c'est bien plus qu'une plateforme, c'est une communauté qui grandit ensemble."
   },
   "search": {
     "title": "Rechercher des propriétaires ou cueilleurs",
