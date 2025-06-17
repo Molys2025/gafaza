@@ -4,8 +4,10 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 import { Link } from 'react-router-dom';
 import { User, TreePine, Users, CreditCard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const OwnerProfile = () => {
+  const { t } = useTranslation();
   const { shouldShowOnboarding, markOnboardingComplete } = useOnboarding();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -37,7 +39,7 @@ const OwnerProfile = () => {
       
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-olive-dark mb-6">Profil Propriétaire</h1>
+          <h1 className="text-3xl font-bold text-olive-dark mb-6">{t('owner.profile')}</h1>
           
           {/* Section Mon Profil */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -50,8 +52,8 @@ const OwnerProfile = () => {
                   <User className="text-white" size={24} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-olive-dark">Mon Profil</h3>
-                  <p className="text-gray-600 text-sm">Gérez vos informations personnelles</p>
+                  <h3 className="font-semibold text-olive-dark">{t('owner.myProfile')}</h3>
+                  <p className="text-gray-600 text-sm">{t('owner.myProfileDesc')}</p>
                 </div>
               </div>
               <div className="text-olive-dark">→</div>
@@ -61,10 +63,10 @@ const OwnerProfile = () => {
           <div className="bg-white rounded-lg shadow-md p-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold text-olive-dark mb-4">
-                Bienvenue sur Zeytna !
+                {t('owner.welcome')}
               </h2>
               <p className="text-gray-600 text-lg">
-                Vous êtes maintenant prêt à gérer vos oliviers et trouver des cueilleurs expérimentés.
+                {t('owner.welcomeDesc')}
               </p>
             </div>
             
@@ -76,9 +78,9 @@ const OwnerProfile = () => {
                 <div className="w-16 h-16 bg-olive rounded-full flex items-center justify-center mx-auto mb-4">
                   <TreePine className="text-white" size={32} />
                 </div>
-                <h3 className="font-semibold text-olive-dark mb-2">Mes Oliviers</h3>
+                <h3 className="font-semibold text-olive-dark mb-2">{t('owner.oliveTrees')}</h3>
                 <p className="text-gray-600 text-sm">
-                  Gérez vos oliveraies et planifiez votre récolte
+                  {t('owner.oliveTreesDesc')}
                 </p>
               </Link>
               
@@ -89,9 +91,9 @@ const OwnerProfile = () => {
                 <div className="w-16 h-16 bg-olive rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="text-white" size={32} />
                 </div>
-                <h3 className="font-semibold text-olive-dark mb-2">Trouver des Cueilleurs</h3>
+                <h3 className="font-semibold text-olive-dark mb-2">{t('owner.findHarvesters')}</h3>
                 <p className="text-gray-600 text-sm">
-                  Recherchez et contactez des cueilleurs qualifiés
+                  {t('owner.findHarvestersDesc')}
                 </p>
               </Link>
               
@@ -102,9 +104,9 @@ const OwnerProfile = () => {
                 <div className="w-16 h-16 bg-olive rounded-full flex items-center justify-center mx-auto mb-4">
                   <CreditCard className="text-white" size={32} />
                 </div>
-                <h3 className="font-semibold text-olive-dark mb-2">Gérer les Paiements</h3>
+                <h3 className="font-semibold text-olive-dark mb-2">{t('owner.managePayments')}</h3>
                 <p className="text-gray-600 text-sm">
-                  Suivez vos transactions en toute sécurité
+                  {t('owner.managePaymentsDesc')}
                 </p>
               </Link>
             </div>

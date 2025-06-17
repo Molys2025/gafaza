@@ -4,32 +4,34 @@ import { EvaluationSection } from "@/components/evaluation/EvaluationSection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Evaluation() {
+  const { t } = useTranslation();
   const [userType, setUserType] = useState<"propriétaire" | "cueilleur">("propriétaire");
 
   return (
     <div className="container py-8 space-y-6">
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Système d'Évaluation</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('evaluation.title')}</h1>
         <p className="text-muted-foreground">
-          Évaluez vos expériences et gagnez des badges pour améliorer votre profil
+          {t('evaluation.subtitle')}
         </p>
       </div>
 
       <Tabs defaultValue="propriétaire" onValueChange={(value) => setUserType(value as any)}>
         <TabsList className="w-full max-w-md mx-auto">
-          <TabsTrigger value="propriétaire" className="flex-1">Propriétaire</TabsTrigger>
-          <TabsTrigger value="cueilleur" className="flex-1">Cueilleur</TabsTrigger>
+          <TabsTrigger value="propriétaire" className="flex-1">{t('evaluation.owner')}</TabsTrigger>
+          <TabsTrigger value="cueilleur" className="flex-1">{t('evaluation.harvester')}</TabsTrigger>
         </TabsList>
       </Tabs>
       
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Système d'Évaluation</CardTitle>
+            <CardTitle>{t('evaluation.evaluationSystem')}</CardTitle>
             <CardDescription>
-              Évaluez vos interactions avec des {userType === "propriétaire" ? "propriétaires" : "cueilleurs"}
+              {t('evaluation.evaluateInteractions')} {userType === "propriétaire" ? t('evaluation.owners') : t('evaluation.harvesters')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -40,23 +42,23 @@ export default function Evaluation() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Statistiques d'Évaluation</CardTitle>
-              <CardDescription>Aperçu de vos évaluations et récompenses</CardDescription>
+              <CardTitle>{t('evaluation.evaluationStats')}</CardTitle>
+              <CardDescription>{t('evaluation.statsOverview')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <StatCard value="4.7" label="Note moyenne" />
-                <StatCard value="12" label="Évaluations" />
-                <StatCard value="3" label="Badges gagnés" />
-                <StatCard value="85%" label="Taux de satisfaction" />
+                <StatCard value="4.7" label={t('evaluation.averageRating')} />
+                <StatCard value="12" label={t('evaluation.evaluations')} />
+                <StatCard value="3" label={t('evaluation.badgesEarned')} />
+                <StatCard value="85%" label={t('evaluation.satisfactionRate')} />
               </div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader>
-              <CardTitle>Vos dernières évaluations</CardTitle>
-              <CardDescription>Les commentaires les plus récents</CardDescription>
+              <CardTitle>{t('evaluation.recentEvaluations')}</CardTitle>
+              <CardDescription>{t('evaluation.recentComments')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

@@ -1,11 +1,14 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TreePine, MapPin, Calendar, Plus, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 const OwnerOliveTrees = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [oliveTrees, setOliveTrees] = useState([
     {
@@ -53,18 +56,18 @@ const OwnerOliveTrees = () => {
               className="flex items-center gap-2 text-olive-dark hover:text-olive transition-colors"
             >
               <ArrowLeft size={20} />
-              <span>Retour</span>
+              <span>{t('common.back')}</span>
             </Link>
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-olive-dark">Mes Oliviers</h1>
+            <h1 className="text-3xl font-bold text-olive-dark">{t('owner.oliveTrees')}</h1>
             <Button 
               onClick={handleAddOliveGrove}
               className="bg-olive hover:bg-olive-dark flex items-center gap-2"
             >
               <Plus size={16} />
-              Ajouter une Oliveraie
+              {t('owner.addOliveGrove')}
             </Button>
           </div>
 
@@ -87,22 +90,22 @@ const OwnerOliveTrees = () => {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Nombre d'arbres</p>
+                      <p className="text-sm text-gray-500">{t('owner.numberOfTrees')}</p>
                       <p className="font-semibold text-olive-dark">{olive.trees}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Variété</p>
+                      <p className="text-sm text-gray-500">{t('owner.variety')}</p>
                       <p className="font-semibold text-olive-dark">{olive.variety}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Dernière récolte</p>
+                      <p className="text-sm text-gray-500">{t('owner.lastHarvest')}</p>
                       <p className="font-semibold text-olive-dark">{olive.lastHarvest}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Rendement estimé</p>
+                      <p className="text-sm text-gray-500">{t('owner.estimatedYield')}</p>
                       <p className="font-semibold text-olive-dark">{olive.estimatedYield}</p>
                     </div>
                   </div>
@@ -114,7 +117,7 @@ const OwnerOliveTrees = () => {
                       className="flex-1"
                       onClick={() => handleViewDetails(olive.name)}
                     >
-                      Voir Détails
+                      {t('owner.viewDetails')}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -122,7 +125,7 @@ const OwnerOliveTrees = () => {
                       className="flex-1"
                       onClick={() => handlePlanHarvest(olive.name)}
                     >
-                      Planifier Récolte
+                      {t('owner.planHarvest')}
                     </Button>
                   </div>
                 </CardContent>
@@ -135,16 +138,16 @@ const OwnerOliveTrees = () => {
               <CardContent className="py-12">
                 <TreePine className="mx-auto text-olive/60 mb-4" size={48} />
                 <h3 className="text-lg font-semibold text-olive-dark mb-2">
-                  Ajoutez votre première oliveraie
+                  {t('owner.addFirstGrove')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Commencez à gérer vos oliviers efficacement
+                  {t('owner.startManaging')}
                 </p>
                 <Button 
                   onClick={handleAddOliveGrove}
                   className="bg-olive hover:bg-olive-dark"
                 >
-                  Ajouter une Oliveraie
+                  {t('owner.addOliveGrove')}
                 </Button>
               </CardContent>
             </Card>

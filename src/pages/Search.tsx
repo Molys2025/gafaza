@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search as SearchIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SearchFilters from "@/components/search/SearchFilters";
 import SearchResults from "@/components/search/SearchResults";
 import MapView from "@/components/search/MapView";
@@ -62,6 +63,7 @@ const mockResults = [
 ];
 
 const Search = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({});
   const [displayMode, setDisplayMode] = useState("list");
@@ -83,21 +85,21 @@ const Search = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold text-olive-dark mb-6">
-        Rechercher des propriétaires ou cueilleurs
+        {t('search.title')}
       </h1>
       
       <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
         <div className="flex gap-2">
           <Input 
             type="search" 
-            placeholder="Nom, région, compétences..." 
+            placeholder={t('search.placeholder')}
             className="flex-1"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <Button type="submit" className="bg-olive hover:bg-olive-dark">
             <SearchIcon className="mr-2 h-4 w-4" />
-            Rechercher
+            {t('search.searchButton')}
           </Button>
         </div>
       </form>

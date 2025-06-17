@@ -57,7 +57,7 @@ const Navbar = () => {
           {/* Menu More avec À propos */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center hover:text-sand transition-colors">
-              Plus <ChevronDown className="ml-1 h-4 w-4" />
+              {t('nav.more')} <ChevronDown className="ml-1 h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white text-olive-dark border border-gray-200 shadow-lg z-50">
               <DropdownMenuItem asChild>
@@ -81,13 +81,13 @@ const Navbar = () => {
               <DropdownMenuContent className="bg-white text-olive-dark border border-gray-200 shadow-lg z-50">
                 <DropdownMenuItem asChild>
                   <Link to="/owner-profile" className="w-full px-4 py-2 hover:bg-sand-light">
-                    Mon profil
+                    {t('nav.myProfile')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="w-full px-4 py-2 hover:bg-sand-light cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
+                  {t('common.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -96,7 +96,7 @@ const Navbar = () => {
               <Link to="/auth">
                 <User className="mr-1 h-3 w-3" />
                 <span className="hidden lg:inline">{t('common.login')}</span>
-                <span className="lg:hidden">Login</span>
+                <span className="lg:hidden">{t('common.login')}</span>
               </Link>
             </Button>
           )}
@@ -140,7 +140,7 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-                  Mon profil
+                  {t('nav.myProfile')}
                 </Link>
                 <Button 
                   variant="outline" 
@@ -151,7 +151,7 @@ const Navbar = () => {
                   }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
+                  {t('common.logout')}
                 </Button>
               </>
             ) : (
