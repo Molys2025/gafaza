@@ -97,7 +97,7 @@ const Index = () => {
               <div className="order-1 md:order-2">
                 <div className="relative">
                   <img 
-                    src="https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&w=800&q=80"
+                    src="/lovable-uploads/3ecab14a-a23d-4648-ab5f-1471e66e1d5d.png"
                     alt="Founder portrait"
                     className="rounded-lg shadow-lg w-full h-96 object-cover"
                   />

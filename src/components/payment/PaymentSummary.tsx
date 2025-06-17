@@ -5,6 +5,8 @@ interface PaymentSummaryProps {
   amount: number;
   currency: string;
   serviceFee: number;
+  cnssContribution?: number;
+  zeytnaCareFee?: number;
   totalAmount: number;
   useEscrow: boolean;
 }
@@ -13,6 +15,8 @@ const PaymentSummary = ({
   amount, 
   currency, 
   serviceFee, 
+  cnssContribution = 0,
+  zeytnaCareFee = 0,
   totalAmount, 
   useEscrow 
 }: PaymentSummaryProps) => {
@@ -26,6 +30,21 @@ const PaymentSummary = ({
         <span>Frais de plateforme ({((serviceFee / amount) * 100).toFixed(0)}%)</span>
         <span>{serviceFee.toFixed(2)} {currency}</span>
       </div>
+      
+      {cnssContribution > 0 && (
+        <div className="w-full flex justify-between mb-2 text-sm">
+          <span>Cotisation CNSS (3.5%)</span>
+          <span>{cnssContribution.toFixed(2)} {currency}</span>
+        </div>
+      )}
+      
+      {zeytnaCareFee > 0 && (
+        <div className="w-full flex justify-between mb-2 text-sm">
+          <span>Zeytna Care</span>
+          <span>{zeytnaCareFee.toFixed(2)} {currency}</span>
+        </div>
+      )}
+      
       <div className="w-full flex justify-between font-bold">
         <span>Total</span>
         <span>{totalAmount.toFixed(2)} {currency}</span>
