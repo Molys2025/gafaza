@@ -189,7 +189,7 @@ const PaymentSystem = ({
             totalAmount={totalAmount}
             useEscrow={useEscrow}
             workerNetAmount={workerNetAmount}
-            showWorkerNet={cnssEnabled || zeytnaCarePlan}
+            showWorkerNet={cnssEnabled || !!zeytnaCarePlan}
           />
         </CardFooter>
       </Card>
