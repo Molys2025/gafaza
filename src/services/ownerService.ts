@@ -13,15 +13,21 @@ export interface OwnerData {
 
 export interface OwnerProfile {
   id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  whatsapp?: string;
-  company?: string;
-  location: string;
-  description?: string;
-  profile_picture?: string;
+  business_name?: string;
+  property_type?: string;
+  property_size?: number;
+  typical_daily_rate?: number;
+  average_rating?: number;
+  total_ratings?: number;
+  verified?: boolean;
+  city?: string;
+  region?: string;
   created_at: string;
+  // User data from users table
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  whatsapp?: string;
 }
 
 export const createOwner = async (userId: string, data: OwnerData) => {
@@ -37,7 +43,7 @@ export const createOwner = async (userId: string, data: OwnerData) => {
       email: data.email,
       phone: data.phone,
       whatsapp: data.whatsapp,
-      role: 'land_owner'
+      role: 'work_provider'
     });
 
   if (userError) {
@@ -45,18 +51,14 @@ export const createOwner = async (userId: string, data: OwnerData) => {
     throw new Error(`Erreur lors de la mise à jour du profil utilisateur: ${userError.message}`);
   }
 
-  // Then create the land owner profile
+  // Then create the work provider profile
   const { error: ownerError } = await supabase
-    .from('land_owners')
+    .from('work_providers')
     .upsert({
       id: userId,
-      full_name: data.fullName,
-      email: data.email,
-      phone: data.phone,
-      whatsapp: data.whatsapp,
-      company: data.company,
-      location: data.location,
-      description: data.description
+      business_name: data.company || data.fullName,
+      property_address: data.location,
+      business_type: 'Propriétaire d\'oliveraie'
     });
 
   if (ownerError) {
@@ -71,8 +73,17 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
   console.log('Getting owner profile for user:', userId);
   
   const { data, error } = await supabase
-    .from('land_owners')
-    .select('*')
+    .from('work_providers')
+    .select(`
+      *,
+      users (
+        first_name,
+        last_name,
+        email,
+        phone,
+        whatsapp
+      )
+    `)
     .eq('id', userId)
     .single();
 
@@ -81,22 +92,36 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
     throw new Error(`Erreur lors de la récupération du profil: ${error.message}`);
   }
 
-  return data;
+  if (!data) return null;
+
+  // Transform the data to match our interface
+  return {
+    id: data.id,
+    business_name: data.business_name,
+    property_type: data.property_type,
+    property_size: data.property_size,
+    typical_daily_rate: data.typical_daily_rate,
+    average_rating: data.average_rating,
+    total_ratings: data.total_ratings,
+    verified: data.verified,
+    city: data.users?.city,
+    region: data.users?.region,
+    created_at: data.created_at,
+    full_name: data.users ? `${data.users.first_name || ''} ${data.users.last_name || ''}`.trim() : undefined,
+    email: data.users?.email,
+    phone: data.users?.phone,
+    whatsapp: data.users?.whatsapp
+  };
 };
 
 export const updateOwnerProfile = async (userId: string, updates: Partial<OwnerData>) => {
   console.log('Updating owner profile for user:', userId);
   
   const { error } = await supabase
-    .from('land_owners')
+    .from('work_providers')
     .update({
-      full_name: updates.fullName,
-      email: updates.email,
-      phone: updates.phone,
-      whatsapp: updates.whatsapp,
-      company: updates.company,
-      location: updates.location,
-      description: updates.description
+      business_name: updates.company || updates.fullName,
+      property_address: updates.location
     })
     .eq('id', userId);
 
@@ -112,8 +137,19 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
   console.log('Fetching all owners...');
   
   const { data, error } = await supabase
-    .from('land_owners')
-    .select('*')
+    .from('work_providers')
+    .select(`
+      *,
+      users (
+        first_name,
+        last_name,
+        email,
+        phone,
+        whatsapp,
+        city,
+        region
+      )
+    `)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -122,5 +158,22 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
   }
 
   console.log('Owners fetched:', data?.length || 0);
-  return data || [];
+  
+  return (data || []).map(item => ({
+    id: item.id,
+    business_name: item.business_name,
+    property_type: item.property_type,
+    property_size: item.property_size,
+    typical_daily_rate: item.typical_daily_rate,
+    average_rating: item.average_rating,
+    total_ratings: item.total_ratings,
+    verified: item.verified,
+    city: item.users?.city,
+    region: item.users?.region,
+    created_at: item.created_at,
+    full_name: item.users ? `${item.users.first_name || ''} ${item.users.last_name || ''}`.trim() : undefined,
+    email: item.users?.email,
+    phone: item.users?.phone,
+    whatsapp: item.users?.whatsapp
+  }));
 };
