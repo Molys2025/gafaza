@@ -100,8 +100,8 @@ const Index = () => {
               <div className="order-1 md:order-2">
                 <div className="relative">
                   <img 
-                    src="/lovable-uploads/b8c8e7c8-d9e7-4e5a-8c5a-5e8c9b5a8c7d.png"
-                    alt="Founder portrait"
+                    src="/lovable-uploads/777e3d21-e985-4be9-89cd-b788c2ec9523.png"
+                    alt="Terrain d'oliviers avec système d'irrigation"
                     className="rounded-lg shadow-lg w-full h-96 object-cover"
                   />
                   <div className="absolute inset-0 bg-olive/10 rounded-lg"></div>
