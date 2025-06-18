@@ -6,6 +6,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import frTranslations from './locales/fr.json';
 import enTranslations from './locales/en.json';
 import arTranslations from './locales/ar.json';
+import tnTranslations from './locales/tn.json';
 
 i18n
   .use(LanguageDetector)
@@ -21,6 +22,9 @@ i18n
       },
       ar: {
         translation: arTranslations
+      },
+      tn: {
+        translation: tnTranslations
       }
     },
     interpolation: {

@@ -13,14 +13,15 @@ import { Globe } from "lucide-react";
 const languages = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'ar', name: 'العربية', flag: '🇹🇳' }
+  { code: 'ar', name: 'العربية', flag: '🇹🇳' },
+  { code: 'tn', name: 'تونسي', flag: '🇹🇳' }
 ];
 
 const LanguageSelector = () => {
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = (i18n.language === 'ar' || i18n.language === 'tn') ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
