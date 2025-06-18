@@ -45,13 +45,16 @@
     "communicate": "Communiquez",
     "communicateDesc": "Discutez et planifiez la récolte via notre système de messagerie sécurisé.",
     "story": "Notre Histoire",
-    "storyTitle": "L'histoire de Zeytna : Quand une galère personnelle devient une solution pour tous",
-    "storyPart1": "Tout a commencé avec un terrain d'oliviers, un rêve devenu réalité. Mais très vite, une question s'est posée : comment faire pour trouver des cueilleurs fiables et compétents, surtout si mon père ne pouvait plus m'aider ? L'idée d'une galère sans nom, surtout pour ceux qui vivent loin et gèrent leurs oliviers à distance, a germé dans mon esprit.",
-    "storyPart2": "C'est de cette interrogation qu'est née Zeytna, la plateforme qui connecte les propriétaires d'oliviers avec des cueilleurs motivés et compétents. Imaginez une marketplace où la confiance est reine, où les paiements sont sécurisés et débloqués une fois le travail accompli.",
-    "storyPart3": "Mais Zeytna, c'est bien plus qu'une simple mise en relation. C'est une volonté de moderniser et de sécuriser le travail des cueilleurs. C'est pourquoi j'ai mis en place deux dispositifs innovants :",
-    "storyCNSS": "La cotisation au CNSS directement depuis la plateforme : Pour offrir aux cueilleurs une stabilité et une sécurité sociale indispensables (assurance maladie et retraite).",
-    "storyCare": "Zeytna Care : Une assurance spécifique pour les accidents de travail, parce que leur sécurité est ma priorité.",
-    "storyConclusion": "Je suis fier de contribuer à un système qui simplifie la vie de milliers de personnes, en créant un lien de confiance entre propriétaires et cueilleurs. Zeytna, c'est bien plus qu'une plateforme, c'est une communauté qui grandit ensemble."
+    "storyTitle": "L'histoire de Zeytna : De mon oliveraie à une plateforme pour tous",
+    "storyPart1": "Tout a commencé le jour où j'ai acheté mon propre terrain d'oliviers. C'était un rêve de longue date, un retour aux sources, un lien avec la terre et la tradition familiale. Mais très vite, la réalité m'a rattrapé : la gestion d'une oliveraie, ce n'est pas seulement contempler les arbres, c'est aussi organiser la récolte, trouver des cueilleurs de confiance, et s'assurer que tout se passe bien, même à distance.",
+    "storyPart2": "J'ai eu la chance, au début, de pouvoir compter sur mon père. Grâce à son réseau et son expérience, il m'a aidé à trouver les bonnes personnes pour m'accompagner lors des récoltes ou pour tailler les arbres. Mais je me suis vite posé la question : « Et si un jour, il ne pouvait plus m'aider ? Comment ferais-je, surtout en vivant parfois loin du terrain ? » J'ai aussi pensé à tous ceux qui, comme moi, vivent à l'étranger ou dans une autre région, et qui n'ont pas forcément de contacts sur place. Pour eux, la gestion d'une oliveraie peut vite devenir un casse-tête.",
+    "storyPart3": "C'est là que l'idée de Zeytna a germé. J'ai voulu créer une solution simple, moderne et fiable pour mettre en relation deux mondes qui ont besoin l'un de l'autre : d'un côté, les propriétaires d'oliviers qui cherchent de la main d'œuvre pour la récolte, le labour ou l'entretien de leurs terres ; de l'autre, des travailleurs qualifiés, souvent passionnés, qui cherchent des missions tout au long de l'année.",
+    "storyPart4": "Mais je ne voulais pas d'une simple plateforme de petites annonces. Je voulais instaurer un climat de confiance, où chaque partie se sent protégée. C'est pourquoi le paiement se fait directement sur la plateforme, et n'est débloqué qu'une fois le travail validé. J'ai aussi voulu aller plus loin en modernisant la rémunération et la protection des travailleurs agricoles.",
+    "storyPart5": "Zeytna propose ainsi deux dispositifs uniques :",
+    "storyCNSS": "La possibilité de cotiser au CNSS directement via la plateforme, pour garantir aux cueilleurs une sécurité sociale, une assurance maladie et une retraite. C'est une vraie avancée pour leur stabilité et leur dignité.",
+    "storyCare": "L'accès à Zeytna Care, une assurance qui couvre les accidents de travail, parce que la sécurité des travailleurs est essentielle.",
+    "storyConclusion": "Aujourd'hui, je suis fier de voir Zeytna grandir et faciliter la vie de milliers de personnes. Ce projet, né d'un besoin personnel, est devenu une aventure collective, portée par la volonté de moderniser le secteur, de créer des opportunités et de bâtir une communauté basée sur la confiance et le respect.",
+    "storyFinalQuote": "Zeytna, c'est bien plus qu'une marketplace : c'est un pont entre tradition et modernité, entre propriétaires et travailleurs, entre la terre et ceux qui la font vivre."
   },
   "search": {
     "title": "Rechercher des propriétaires ou cueilleurs",

@@ -81,6 +81,8 @@ const Index = () => {
                   <p>{t('home.storyPart1')}</p>
                   <p>{t('home.storyPart2')}</p>
                   <p>{t('home.storyPart3')}</p>
+                  <p>{t('home.storyPart4')}</p>
+                  <p>{t('home.storyPart5')}</p>
                   <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-olive">
                     <div className="flex items-start gap-3 mb-3">
                       <Shield className="w-5 h-5 text-olive mt-1 flex-shrink-0" />
@@ -92,12 +94,13 @@ const Index = () => {
                     </div>
                   </div>
                   <p className="font-medium text-olive-dark">{t('home.storyConclusion')}</p>
+                  <p className="italic text-olive-dark font-medium">{t('home.storyFinalQuote')}</p>
                 </div>
               </div>
               <div className="order-1 md:order-2">
                 <div className="relative">
                   <img 
-                    src="/lovable-uploads/3ecab14a-a23d-4648-ab5f-1471e66e1d5d.png"
+                    src="/lovable-uploads/b8c8e7c8-d9e7-4e5a-8c5a-5e8c9b5a8c7d.png"
                     alt="Founder portrait"
                     className="rounded-lg shadow-lg w-full h-96 object-cover"
                   />
