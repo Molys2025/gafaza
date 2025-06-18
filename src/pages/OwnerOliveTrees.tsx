@@ -6,6 +6,7 @@ import { TreePine, MapPin, Calendar, Plus, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import PublishJobDialog from '@/components/owner/PublishJobDialog';
 
 const OwnerOliveTrees = () => {
   const { t } = useTranslation();
@@ -110,23 +111,29 @@ const OwnerOliveTrees = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleViewDetails(olive.name)}
-                    >
-                      {t('owner.viewDetails')}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handlePlanHarvest(olive.name)}
-                    >
-                      {t('owner.planHarvest')}
-                    </Button>
+                  <div className="flex flex-col gap-2 pt-4">
+                    {/* Bouton principal pour publier une annonce */}
+                    <PublishJobDialog oliveGrove={olive} />
+                    
+                    {/* Boutons secondaires */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleViewDetails(olive.name)}
+                      >
+                        {t('owner.viewDetails')}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handlePlanHarvest(olive.name)}
+                      >
+                        {t('owner.planHarvest')}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

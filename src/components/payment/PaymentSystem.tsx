@@ -36,9 +36,21 @@ const PaymentSystem = ({
   const { toast } = useToast();
 
   const serviceFee = amount * serviceFeeRate;
-  const cnssContribution = cnssEnabled ? amount * 0.035 : 0; // 3.5% CNSS
-  const zeytnaCareFee = zeytnaCarePlan === 'basic' ? 1 : zeytnaCarePlan === 'plus' ? 3 : 0;
-  const totalAmount = amount + serviceFee + cnssContribution + zeytnaCareFee;
+  
+  // Calcul des frais d'assurance avec répartition 50/50
+  const cnssContributionTotal = cnssEnabled ? amount * 0.035 : 0; // 3.5% CNSS total
+  const cnssContributionWorker = cnssContributionTotal / 2; // 50% à la charge du cueilleur
+  const cnssContributionProvider = cnssContributionTotal / 2; // 50% à la charge du propriétaire
+  
+  const zeytnaCareFeeTotal = zeytnaCarePlan === 'basic' ? 1 : zeytnaCarePlan === 'plus' ? 3 : 0;
+  const zeytnaCareFeeWorker = zeytnaCareFeeTotal / 2; // 50% à la charge du cueilleur
+  const zeytnaCareFeeProvider = zeytnaCareFeeTotal / 2; // 50% à la charge du propriétaire
+  
+  // Montant net reçu par le cueilleur (montant - part cueilleur des assurances)
+  const workerNetAmount = amount - cnssContributionWorker - zeytnaCareFeeWorker;
+  
+  // Montant total à payer par le propriétaire (montant + frais plateforme + part propriétaire des assurances)
+  const totalAmount = amount + serviceFee + cnssContributionProvider + zeytnaCareFeeProvider;
 
   const handleInsuranceChange = (cnss: boolean, zeytnacare: string | null) => {
     setCnssEnabled(cnss);
@@ -62,9 +74,10 @@ const PaymentSystem = ({
           transactionId: "TXN" + Math.floor(Math.random() * 1000000),
           amount: totalAmount,
           serviceFee: serviceFee,
-          cnssContribution: cnssContribution,
-          zeytnaCareFee: zeytnaCareFee,
+          cnssContribution: cnssContributionTotal,
+          zeytnaCareFee: zeytnaCareFeeTotal,
           baseAmount: amount,
+          workerNetAmount: workerNetAmount,
           currency,
           method: data.type,
           escrow: useEscrow,
@@ -112,6 +125,23 @@ const PaymentSystem = ({
             </p>
           </div>
           
+          {/* Détail de la répartition des coûts */}
+          {(cnssEnabled || zeytnaCarePlan) && (
+            <div className="mb-4 p-3 border rounded-md bg-green-50">
+              <h4 className="font-medium text-green-800 mb-2">Répartition des frais d'assurance (50/50)</h4>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span>Cueilleur recevra :</span>
+                  <span className="font-medium">{workerNetAmount.toFixed(2)} {currency}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Vous payez au total :</span>
+                  <span className="font-medium">{totalAmount.toFixed(2)} {currency}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <Tabs defaultValue="card">
             <TabsList className="grid grid-cols-4 mb-4">
               <TabsTrigger value="card" className="flex flex-col items-center py-2">
@@ -154,10 +184,12 @@ const PaymentSystem = ({
             amount={amount}
             currency={currency}
             serviceFee={serviceFee}
-            cnssContribution={cnssContribution}
-            zeytnaCareFee={zeytnaCareFee}
+            cnssContribution={cnssContributionProvider}
+            zeytnaCareFee={zeytnaCareFeeProvider}
             totalAmount={totalAmount}
             useEscrow={useEscrow}
+            workerNetAmount={workerNetAmount}
+            showWorkerNet={cnssEnabled || zeytnaCarePlan}
           />
         </CardFooter>
       </Card>
