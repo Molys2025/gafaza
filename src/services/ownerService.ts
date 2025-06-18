@@ -145,9 +145,7 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
         last_name,
         email,
         phone,
-        whatsapp,
-        city,
-        region
+        whatsapp
       )
     `)
     .order('created_at', { ascending: false });
@@ -168,8 +166,8 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
     average_rating: item.average_rating,
     total_ratings: item.total_ratings,
     verified: item.verified,
-    city: item.users?.city,
-    region: item.users?.region,
+    city: undefined, // Remove reference to non-existent property
+    region: undefined, // Remove reference to non-existent property
     created_at: item.created_at,
     full_name: item.users ? `${item.users.first_name || ''} ${item.users.last_name || ''}`.trim() : undefined,
     email: item.users?.email,
