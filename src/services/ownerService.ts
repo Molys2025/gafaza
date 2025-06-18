@@ -104,8 +104,8 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
     average_rating: data.average_rating,
     total_ratings: data.total_ratings,
     verified: data.verified,
-    city: data.users?.city,
-    region: data.users?.region,
+    city: undefined, // Remove reference to non-existent property
+    region: undefined, // Remove reference to non-existent property
     created_at: data.created_at,
     full_name: data.users ? `${data.users.first_name || ''} ${data.users.last_name || ''}`.trim() : undefined,
     email: data.users?.email,
