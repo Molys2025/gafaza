@@ -22,6 +22,7 @@ import HarvesterProfile from "./pages/HarvesterProfile";
 import Messages from "./pages/Messages";
 import Payment from "./pages/Payment";
 import Evaluation from "./pages/Evaluation";
+import Admin from "./pages/Admin";
 import LanguageSelector from "./components/LanguageSelector";
 import "./i18n/config";
 
@@ -51,6 +52,7 @@ function App() {
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             </Routes>
             <LanguageSelector />
             <Toaster />

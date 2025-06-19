@@ -22,11 +22,28 @@ import { useQuery } from "@tanstack/react-query";
 import { getAllOwners } from "@/services/ownerService";
 import { getAllHarvesters } from "@/services/harvesterListService";
 
+interface UnifiedUser {
+  id: string;
+  role: 'work_provider' | 'job_seeker';
+  status: string;
+  last_login: string;
+  created_at?: string;
+  // Propriétaires
+  business_name?: string;
+  email?: string;
+  verified?: boolean;
+  // Cueilleurs
+  full_name?: string;
+  phone?: string;
+  // Commun
+  [key: string]: any;
+}
+
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<UnifiedUser | null>(null);
 
   // Récupération des données utilisateurs
   const { data: owners = [], isLoading: ownersLoading } = useQuery({
@@ -39,19 +56,21 @@ const UserManagement = () => {
     queryFn: getAllHarvesters,
   });
 
-  // Combinaison des données
-  const allUsers = [
+  // Combinaison des données avec interface unifiée
+  const allUsers: UnifiedUser[] = [
     ...owners.map(owner => ({
       ...owner,
-      role: 'work_provider',
+      role: 'work_provider' as const,
       status: owner.verified ? 'active' : 'pending',
       last_login: new Date().toISOString(),
+      created_at: owner.created_at || new Date().toISOString(),
     })),
     ...harvesters.map(harvester => ({
       ...harvester,
-      role: 'job_seeker',
+      role: 'job_seeker' as const,
       status: 'active',
       last_login: new Date().toISOString(),
+      created_at: harvester.created_at || new Date().toISOString(),
     }))
   ];
 
@@ -84,10 +103,20 @@ const UserManagement = () => {
     }
   };
 
+  const getUserDisplayName = (user: UnifiedUser) => {
+    return user.business_name || user.full_name || 'Nom non disponible';
+  };
+
+  const getUserEmail = (user: UnifiedUser) => {
+    return user.email || 'Email non disponible';
+  };
+
   const filteredUsers = allUsers.filter(user => {
-    const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.business_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const displayName = getUserDisplayName(user);
+    const email = getUserEmail(user);
+    
+    const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     
@@ -158,10 +187,10 @@ const UserManagement = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium">
-                          {user.full_name || user.business_name}
+                          {getUserDisplayName(user)}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {user.email}
+                          {getUserEmail(user)}
                         </div>
                       </div>
                     </TableCell>
@@ -173,14 +202,14 @@ const UserManagement = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {new Date(user.last_login || user.created_at).toLocaleDateString('fr-FR')}
+                        {new Date(user.last_login || user.created_at || new Date()).toLocaleDateString('fr-FR')}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => setSelectedUser(user)}>
                               <Eye className="h-4 w-4" />
                             </Button>
                           </DialogTrigger>
@@ -188,26 +217,28 @@ const UserManagement = () => {
                             <DialogHeader>
                               <DialogTitle>Détails de l'utilisateur</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="text-sm font-medium">Nom</label>
-                                  <p>{user.full_name || user.business_name}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">Email</label>
-                                  <p>{user.email}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">Téléphone</label>
-                                  <p>{user.phone}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">Rôle</label>
-                                  <p>{user.role === 'work_provider' ? 'Propriétaire' : 'Cueilleur'}</p>
+                            {selectedUser && (
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium">Nom</label>
+                                    <p>{getUserDisplayName(selectedUser)}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">Email</label>
+                                    <p>{getUserEmail(selectedUser)}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">Téléphone</label>
+                                    <p>{selectedUser.phone || 'Non disponible'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">Rôle</label>
+                                    <p>{selectedUser.role === 'work_provider' ? 'Propriétaire' : 'Cueilleur'}</p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            )}
                           </DialogContent>
                         </Dialog>
                         
