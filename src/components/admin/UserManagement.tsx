@@ -70,7 +70,8 @@ const UserManagement = () => {
       role: 'job_seeker' as const,
       status: 'active',
       last_login: new Date().toISOString(),
-      created_at: harvester.created_at || new Date().toISOString(),
+      // Use a default created_at since it doesn't exist on HarvesterProfile
+      created_at: new Date().toISOString(),
     }))
   ];
 
