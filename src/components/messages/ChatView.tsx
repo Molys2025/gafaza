@@ -1,12 +1,15 @@
-
 import { useRef, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CheckCheck, Check, Send, Smile, Image, Paperclip, MapPin } from "lucide-react";
+import { CheckCheck, Check, Send, Smile, Image, Paperclip, MapPin, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { messageModerator } from "@/utils/messageModeration";
+import PlatformBenefitsAlert from "./PlatformBenefitsAlert";
+import ContactUnlock from "./ContactUnlock";
 
 interface Message {
   id: string;
@@ -21,21 +24,33 @@ interface ChatViewProps {
   conversationId: string;
   recipientName: string;
   recipientAvatar: string;
+  recipientPhone?: string;
+  recipientWhatsapp?: string;
   messages: Message[];
+  applicationStatus?: 'pending' | 'accepted' | 'paid' | 'completed';
   onSendMessage: (message: string) => void;
 }
 
 const ChatView = ({ 
   conversationId, 
   recipientName, 
-  recipientAvatar, 
+  recipientAvatar,
+  recipientPhone,
+  recipientWhatsapp,
+  applicationStatus = 'pending',
   messages, 
   onSendMessage 
 }: ChatViewProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [moderationWarning, setModerationWarning] = useState<{
+    show: boolean;
+    type: 'contact_info' | 'external_link' | 'bypass_attempt' | null;
+  }>({ show: false, type: null });
+  const [showBenefitsAlert, setShowBenefitsAlert] = useState(false);
+  
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const currentUserId = "currentUser"; // This would normally come from authentication
+  const currentUserId = "currentUser";
   
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -45,64 +60,64 @@ const ChatView = ({
     }
   }, [messages]);
 
+  // Afficher périodiquement les avantages de la plateforme
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (applicationStatus === 'pending' && Math.random() < 0.3) {
+        setShowBenefitsAlert(true);
+        setTimeout(() => setShowBenefitsAlert(false), 8000);
+      }
+    }, 30000); // Toutes les 30 secondes
+
+    return () => clearInterval(timer);
+  }, [applicationStatus]);
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      onSendMessage(newMessage);
-      setNewMessage("");
+    if (!newMessage.trim()) return;
+
+    // Modération du message
+    const moderationResult = messageModerator.moderateMessage(newMessage, applicationStatus);
+    
+    if (!moderationResult.isAllowed) {
+      setModerationWarning({
+        show: true,
+        type: moderationResult.warningType
+      });
+      
+      // Auto-hide warning après 5 secondes
+      setTimeout(() => {
+        setModerationWarning({ show: false, type: null });
+      }, 5000);
+      
+      return;
     }
+
+    onSendMessage(newMessage);
+    setNewMessage("");
+    setModerationWarning({ show: false, type: null });
   };
 
-  // Simulate typing indicator
   const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewMessage(e.target.value);
+    const value = e.target.value;
+    setNewMessage(value);
+    
+    // Vérification en temps réel pour avertir l'utilisateur
+    if (value.length > 10) {
+      const moderationResult = messageModerator.moderateMessage(value, applicationStatus);
+      if (!moderationResult.isAllowed && !moderationWarning.show) {
+        setModerationWarning({
+          show: true,
+          type: moderationResult.warningType
+        });
+      } else if (moderationResult.isAllowed && moderationWarning.show) {
+        setModerationWarning({ show: false, type: null });
+      }
+    }
+    
     if (!isTyping) {
       setIsTyping(true);
-      // In a real app, you would send a typing indicator to the backend here
       setTimeout(() => setIsTyping(false), 3000);
-    }
-  };
-
-  const renderMessageContent = (message: Message) => {
-    switch (message.type) {
-      case "image":
-        return (
-          <div className="rounded-lg overflow-hidden max-w-xs">
-            <img 
-              src="/placeholder.svg" 
-              alt="Image" 
-              className="w-full h-auto object-cover"
-            />
-          </div>
-        );
-      case "file":
-        return (
-          <div className="bg-gray-100 rounded-lg p-3 flex items-center">
-            <div className="bg-gray-200 p-2 rounded mr-3">
-              <Paperclip className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="font-medium">Document.pdf</div>
-              <div className="text-xs text-gray-500">2.4 MB</div>
-            </div>
-          </div>
-        );
-      case "location":
-        return (
-          <div className="rounded-lg overflow-hidden max-w-xs">
-            <img 
-              src="/placeholder.svg" 
-              alt="Location" 
-              className="w-full h-32 object-cover"
-            />
-            <div className="bg-white p-2 text-sm flex items-center">
-              <MapPin className="h-4 w-4 mr-1" />
-              <span>Localisation partagée</span>
-            </div>
-          </div>
-        );
-      default:
-        return <p>{message.content}</p>;
     }
   };
 
@@ -142,6 +157,26 @@ const ChatView = ({
             <Paperclip className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      {/* Alerte des avantages de la plateforme */}
+      {showBenefitsAlert && (
+        <div className="p-4 border-b">
+          <PlatformBenefitsAlert 
+            type="info" 
+            onClose={() => setShowBenefitsAlert(false)}
+          />
+        </div>
+      )}
+
+      {/* Composant de déblocage des contacts */}
+      <div className="p-4 border-b">
+        <ContactUnlock
+          applicationStatus={applicationStatus}
+          recipientPhone={recipientPhone}
+          recipientWhatsapp={recipientWhatsapp}
+          onRequestContact={() => {}}
+        />
       </div>
       
       <ScrollArea 
@@ -217,6 +252,16 @@ const ChatView = ({
       </ScrollArea>
       
       <form onSubmit={handleSendMessage} className="p-4 border-t">
+        {/* Alerte de modération */}
+        {moderationWarning.show && (
+          <div className="mb-3">
+            <PlatformBenefitsAlert 
+              type="warning" 
+              warningType={moderationWarning.type || undefined}
+            />
+          </div>
+        )}
+        
         <div className="flex flex-col gap-2">
           <Textarea 
             placeholder="Tapez votre message..." 
@@ -239,7 +284,12 @@ const ChatView = ({
                 <MapPin className="h-4 w-4" />
               </Button>
             </div>
-            <Button type="submit" size="sm" className="px-4">
+            <Button 
+              type="submit" 
+              size="sm" 
+              className="px-4"
+              disabled={!newMessage.trim()}
+            >
               <Send className="h-4 w-4 mr-1" />
               Envoyer
             </Button>
