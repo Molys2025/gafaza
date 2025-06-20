@@ -1,19 +1,7 @@
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  Users, 
-  FileText, 
-  MessageSquare, 
-  CreditCard, 
-  Shield, 
-  BarChart3,
-  AlertTriangle,
-  Settings
-} from "lucide-react";
+import { Users, FileText, MessageSquare, CreditCard, Shield, BarChart3, AlertTriangle, Settings } from "lucide-react";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import JobManagement from "@/components/admin/JobManagement";
@@ -22,6 +10,7 @@ import ReportsModeration from "@/components/admin/ReportsModeration";
 import LoginHistory from "@/components/admin/LoginHistory";
 import InteractionMonitoring from "@/components/admin/InteractionMonitoring";
 import SocialBenefitsManagement from "@/components/admin/SocialBenefitsManagement";
+import CRUDTest from "@/components/admin/CRUDTest";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -39,7 +28,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
+          <TabsList className="grid grid-cols-4 lg:grid-cols-9 w-full">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -68,9 +57,13 @@ const Admin = () => {
               <AlertTriangle className="h-4 w-4" />
               Signalements
             </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-2">
+            <TabsTrigger value="history" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              Connexions
+              Historique
+            </TabsTrigger>
+            <TabsTrigger value="tests" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Tests
             </TabsTrigger>
           </TabsList>
 
@@ -102,8 +95,14 @@ const Admin = () => {
             <ReportsModeration />
           </TabsContent>
 
-          <TabsContent value="logs">
+          <TabsContent value="history">
             <LoginHistory />
+          </TabsContent>
+
+          <TabsContent value="tests">
+            <div className="space-y-6">
+              <CRUDTest />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

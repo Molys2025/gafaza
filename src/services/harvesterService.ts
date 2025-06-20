@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface HarvesterData {
@@ -17,49 +16,55 @@ export interface HarvesterData {
 }
 
 export const createHarvester = async (userId: string, data: HarvesterData) => {
-  console.log('Creating harvester profile for user:', userId);
+  console.log('Creating harvester profile for user:', userId, data);
   
-  // First, update the user's basic information and role
-  const { error: userError } = await supabase
-    .from('users')
-    .upsert({
-      id: userId,
-      first_name: data.fullName.split(' ')[0],
-      last_name: data.fullName.split(' ').slice(1).join(' '),
-      email: data.email,
-      phone: data.phone,
-      whatsapp: data.whatsapp,
-      role: 'job_seeker'
-    });
+  try {
+    // First, update the user's basic information and role
+    const { error: userError } = await supabase
+      .from('users')
+      .upsert({
+        id: userId,
+        first_name: data.fullName.split(' ')[0],
+        last_name: data.fullName.split(' ').slice(1).join(' '),
+        email: data.email,
+        phone: data.phone,
+        whatsapp: data.whatsapp,
+        role: 'job_seeker'
+      });
 
-  if (userError) {
-    console.error('Error updating user:', userError);
-    throw new Error(`Erreur lors de la mise à jour du profil utilisateur: ${userError.message}`);
+    if (userError) {
+      console.error('Error updating user:', userError);
+      throw userError;
+    }
+
+    // Then create the job seeker profile
+    const { error: harvesterError } = await supabase
+      .from('job_seekers')
+      .upsert({
+        id: userId,
+        full_name: data.fullName,
+        phone: data.phone,
+        whatsapp: data.whatsapp,
+        experience_years: data.experience,
+        skills: data.skills,
+        availability_start: data.availabilityStart,
+        availability_end: data.availabilityEnd,
+        preferred_regions: data.preferredRegions,
+        daily_rate: data.dailyRate,
+        bio: data.additionalInfo
+      });
+
+    if (harvesterError) {
+      console.error('Error creating harvester profile:', harvesterError);
+      throw harvesterError;
+    }
+
+    console.log('Harvester profile created successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Error in createHarvester:', error);
+    throw error;
   }
-
-  // Then create the job seeker profile
-  const { error: harvesterError } = await supabase
-    .from('job_seekers')
-    .upsert({
-      id: userId,
-      full_name: data.fullName,
-      phone: data.phone,
-      whatsapp: data.whatsapp,
-      experience_years: data.experience,
-      skills: data.skills,
-      availability_start: data.availabilityStart,
-      availability_end: data.availabilityEnd,
-      preferred_regions: data.preferredRegions,
-      daily_rate: data.dailyRate,
-      bio: data.additionalInfo
-    });
-
-  if (harvesterError) {
-    console.error('Error creating harvester profile:', harvesterError);
-    throw new Error(`Erreur lors de la création du profil cueilleur: ${harvesterError.message}`);
-  }
-
-  console.log('Harvester profile created successfully');
 };
 
 export const uploadProfilePicture = async (userId: string, file: File) => {
