@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -71,6 +72,39 @@ const ChatView = ({
 
     return () => clearInterval(timer);
   }, [applicationStatus]);
+
+  const renderMessageContent = (message: Message) => {
+    switch (message.type) {
+      case "text":
+        return <p className="whitespace-pre-wrap break-words">{message.content}</p>;
+      case "image":
+        return (
+          <div className="space-y-2">
+            <img 
+              src={message.content} 
+              alt="Image partagée" 
+              className="max-w-sm rounded-lg"
+            />
+          </div>
+        );
+      case "file":
+        return (
+          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded">
+            <Paperclip className="h-4 w-4" />
+            <span className="text-sm">{message.content}</span>
+          </div>
+        );
+      case "location":
+        return (
+          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded">
+            <MapPin className="h-4 w-4" />
+            <span className="text-sm">Position partagée</span>
+          </div>
+        );
+      default:
+        return <p className="whitespace-pre-wrap break-words">{message.content}</p>;
+    }
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();

@@ -49,24 +49,22 @@ export class MessageModerator {
 
     if (!isTransactionSecured) {
       // Vérifier les numéros de téléphone
-      const phoneMatches = content.match(this.phonePatterns.reduce((all, pattern) => {
-        return [...all, ...Array.from(content.matchAll(pattern))];
-      }, [] as RegExpMatchArray[]));
-
-      if (phoneMatches?.length) {
-        blockedContent.push(...phoneMatches.map(match => match[0]));
-        warningType = 'contact_info';
-      }
+      this.phonePatterns.forEach(pattern => {
+        const matches = content.match(pattern);
+        if (matches) {
+          blockedContent.push(...matches);
+          warningType = 'contact_info';
+        }
+      });
 
       // Vérifier les emails
-      const emailMatches = content.match(this.emailPatterns.reduce((all, pattern) => {
-        return [...all, ...Array.from(content.matchAll(pattern))];
-      }, [] as RegExpMatchArray[]));
-
-      if (emailMatches?.length) {
-        blockedContent.push(...emailMatches.map(match => match[0]));
-        warningType = 'contact_info';
-      }
+      this.emailPatterns.forEach(pattern => {
+        const matches = content.match(pattern);
+        if (matches) {
+          blockedContent.push(...matches);
+          warningType = 'contact_info';
+        }
+      });
 
       // Vérifier les mentions de plateformes externes
       const platformMatches = this.externalPlatforms.some(pattern => pattern.test(content));
