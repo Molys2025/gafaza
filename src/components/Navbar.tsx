@@ -41,7 +41,7 @@ const Navbar = () => {
           <Link to="/owner-profile" className="hover:text-sand transition-colors">
             {t('common.owner')}
           </Link>
-          <Link to="/harvester-profile" className="hover:text-sand transition-colors">
+          <Link to="/harvester-dashboard" className="hover:text-sand transition-colors">
             {t('common.harvester')}
           </Link>
           <Link to="/messages" className="hover:text-sand transition-colors">
@@ -121,7 +121,7 @@ const Navbar = () => {
             <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
               {t('common.owner')}
             </Link>
-            <Link to="/harvester-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+            <Link to="/harvester-dashboard" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
               {t('common.harvester')}
             </Link>
             <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>

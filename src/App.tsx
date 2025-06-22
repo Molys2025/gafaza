@@ -19,6 +19,7 @@ import OwnerAddOliveGrove from "./pages/OwnerAddOliveGrove";
 import OwnerFindHarvesters from "./pages/OwnerFindHarvesters";
 import OwnerPayments from "./pages/OwnerPayments";
 import HarvesterProfile from "./pages/HarvesterProfile";
+import HarvesterDashboard from "./pages/HarvesterDashboard";
 import Messages from "./pages/Messages";
 import Payment from "./pages/Payment";
 import Evaluation from "./pages/Evaluation";
@@ -49,6 +50,7 @@ function App() {
               <Route path="/owner-find-harvesters" element={<ProtectedRoute><OwnerFindHarvesters /></ProtectedRoute>} />
               <Route path="/owner-payments" element={<ProtectedRoute><OwnerPayments /></ProtectedRoute>} />
               <Route path="/harvester-profile" element={<ProtectedRoute><HarvesterProfile /></ProtectedRoute>} />
+              <Route path="/harvester-dashboard" element={<ProtectedRoute><HarvesterDashboard /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />

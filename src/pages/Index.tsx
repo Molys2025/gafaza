@@ -25,7 +25,7 @@ const Index = () => {
               </Link>
             </Button>
             <Button className="bg-olive-dark hover:bg-olive text-white px-8 py-6 text-lg" asChild>
-              <Link to="/harvester-profile">
+              <Link to="/harvester-dashboard">
                 {t('home.harvesterButton')}
               </Link>
             </Button>
