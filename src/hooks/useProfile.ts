@@ -117,61 +117,98 @@ export const useProfile = () => {
     try {
       setLoading(true);
 
+      // Prepare profile data based on video analysis or traditional input
+      const profileData: any = {
+        id: user.id,
+        user_type: userType,
+        email: user.email,
+      };
+
+      // If we have video-extracted data, use it
+      if (additionalData) {
+        if (additionalData.personal_info) {
+          profileData.first_name = additionalData.personal_info.name?.split(' ')[0] || additionalData.first_name;
+          profileData.last_name = additionalData.personal_info.name?.split(' ').slice(1).join(' ') || additionalData.last_name;
+          profileData.address = additionalData.personal_info.location || additionalData.address;
+        }
+        
+        // Merge any additional fields
+        Object.assign(profileData, {
+          first_name: profileData.first_name || additionalData.first_name,
+          last_name: profileData.last_name || additionalData.last_name,
+          phone: additionalData.phone,
+          address: profileData.address || additionalData.address,
+        });
+      }
+
       // Create main profile
-      const { data: profileData, error: profileError } = await supabase
+      const { data: createdProfile, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: user.id,
-          user_type: userType,
-          email: user.email,
-          first_name: additionalData?.first_name,
-          last_name: additionalData?.last_name,
-          phone: additionalData?.phone,
-          address: additionalData?.address,
-        })
+        .insert(profileData)
         .select()
         .single();
 
       if (profileError) throw profileError;
 
-      // Create specific profile
+      // Create specific profile based on user type
       if (userType === 'owner') {
+        const ownerData: any = {
+          id: user.id,
+        };
+
+        // Map video-extracted data to owner profile
+        if (additionalData?.property_info) {
+          ownerData.olive_trees_count = parseInt(additionalData.property_info.tree_count) || null;
+          ownerData.grove_location = additionalData.property_info.property_location || additionalData.property_info.location;
+          ownerData.grove_size_hectares = parseFloat(additionalData.property_info.property_size) || null;
+        }
+
+        if (additionalData?.personal_info?.experience_years) {
+          ownerData.experience_years = parseInt(additionalData.personal_info.experience_years);
+        }
+
         const { error: ownerError } = await supabase
           .from('owner_profiles')
-          .insert({
-            id: user.id,
-            experience_years: additionalData?.experience_years,
-            olive_trees_count: additionalData?.olive_trees_count,
-            grove_location: additionalData?.grove_location,
-            grove_size_hectares: additionalData?.grove_size_hectares,
-          });
+          .insert(ownerData);
 
         if (ownerError) throw ownerError;
+        
       } else if (userType === 'harvester') {
+        const harvesterData: any = {
+          id: user.id,
+        };
+
+        // Map video-extracted data to harvester profile
+        if (additionalData?.skills_and_services) {
+          harvesterData.specializations = additionalData.skills_and_services.specializations || [];
+          harvesterData.equipment_owned = additionalData.skills_and_services.equipment_owned || [];
+          harvesterData.hourly_rate = parseFloat(additionalData.skills_and_services.daily_rate) || null;
+          harvesterData.availability_radius_km = parseInt(additionalData.skills_and_services.work_radius) || null;
+        }
+
+        if (additionalData?.personal_info?.experience_years) {
+          harvesterData.experience_years = parseInt(additionalData.personal_info.experience_years);
+        }
+
         const { error: harvesterError } = await supabase
           .from('harvester_profiles')
-          .insert({
-            id: user.id,
-            experience_years: additionalData?.experience_years,
-            specializations: additionalData?.specializations,
-            equipment_owned: additionalData?.equipment_owned,
-            availability_radius_km: additionalData?.availability_radius_km,
-            hourly_rate: additionalData?.hourly_rate,
-          });
+          .insert(harvesterData);
 
         if (harvesterError) throw harvesterError;
       }
 
       // Cast the profile data to ensure type safety
       const typedProfile: Profile = {
-        ...profileData,
-        user_type: profileData.user_type as 'owner' | 'harvester'
+        ...createdProfile,
+        user_type: createdProfile.user_type as 'owner' | 'harvester'
       };
       setProfile(typedProfile);
       
       toast({
         title: 'Profil créé',
-        description: 'Votre profil a été créé avec succès',
+        description: additionalData ? 
+          'Votre profil a été créé automatiquement grâce à l\'IA !' : 
+          'Votre profil a été créé avec succès',
       });
 
       return true;
