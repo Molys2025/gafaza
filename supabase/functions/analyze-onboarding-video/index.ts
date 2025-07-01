@@ -13,26 +13,33 @@ serve(async (req) => {
   }
 
   try {
-    const { videoData, userType } = await req.json();
+    const { videoData, userType, mediaType = 'video' } = await req.json();
 
     if (!videoData) {
-      throw new Error('No video data provided');
+      throw new Error('No media data provided');
     }
 
-    // Step 1: Extract audio from video and transcribe with Whisper
-    console.log('Starting video analysis...');
+    // Step 1: Extract audio and transcribe with Whisper
+    console.log(`Starting ${mediaType} analysis...`);
     
+    // Convert base64 to binary
+    const binaryData = Uint8Array.from(atob(videoData), c => c.charCodeAt(0));
+    
+    // Create FormData for Whisper API
+    const formData = new FormData();
+    const blob = new Blob([binaryData], { 
+      type: mediaType === 'video' ? 'video/webm' : 'audio/webm' 
+    });
+    formData.append('file', blob, `media.webm`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'fr');
+
     const transcribeResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'whisper-1',
-        audio: videoData,
-        language: 'fr'
-      }),
+      body: formData,
     });
 
     if (!transcribeResponse.ok) {
@@ -46,7 +53,7 @@ serve(async (req) => {
 
     // Step 2: Analyze transcribed text with GPT to extract structured data
     const analysisPrompt = `
-Analyse le texte suivant d'une présentation vidéo d'un utilisateur qui s'inscrit sur une marketplace agricole (Zeytna) spécialisée dans la récolte d'olives.
+Analyse le texte suivant d'une présentation ${mediaType === 'video' ? 'vidéo' : 'audio'} d'un utilisateur qui s'inscrit sur une marketplace agricole (Zeytna) spécialisée dans la récolte d'olives.
 
 Type d'utilisateur: ${userType === 'owner' ? 'Propriétaire d\'oliveraie' : 'Cueilleur/Récolteur'}
 
@@ -97,7 +104,8 @@ Extrais et structure les informations suivantes au format JSON :
     "special_notes": "informations importantes non catégorisées"
   },
   "confidence_score": "score de confiance sur l'extraction (0-100)",
-  "missing_info": ["informations importantes manquantes à demander"]
+  "missing_info": ["informations importantes manquantes à demander"],
+  "media_type": "${mediaType}"
 }
 
 Réponds uniquement avec le JSON structuré, sans texte additionnel.
@@ -144,17 +152,19 @@ Réponds uniquement avec le JSON structuré, sans texte additionnel.
       // Fallback: create a basic structure
       extractedData = {
         personal_info: {
-          name: "Information extraite de la vidéo",
+          name: "Information extraite du média",
           location: "À préciser",
         },
         transcription: transcribedText,
         confidence_score: 50,
-        missing_info: ["Informations à compléter avec l'assistant"]
+        missing_info: ["Informations à compléter avec l'assistant"],
+        media_type: mediaType
       };
     }
 
     // Add the original transcription for reference
     extractedData.original_transcription = transcribedText;
+    extractedData.media_type = mediaType;
 
     return new Response(JSON.stringify({
       success: true,

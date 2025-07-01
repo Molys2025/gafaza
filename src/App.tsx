@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
+import Experience from "./pages/Experience";
 import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import OwnerProfile from "./pages/OwnerProfile";
@@ -38,6 +39,7 @@ function App() {
             <Navbar />
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/experience" element={<Experience />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/search" element={<Search />} />
               <Route path="/owner-profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />

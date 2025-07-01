@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Trees, Users, Search, MessageCircle, Shield, Heart } from "lucide-react";
+import { Trees, Users, Search, MessageCircle, Shield, Heart, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const Index = () => {
@@ -18,6 +18,31 @@ const Index = () => {
           <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto animate-fadeIn">
             {t('home.heroSubtitle')}
           </p>
+          
+          {/* Nouveau bouton expérience */}
+          <div className="mb-8 animate-fadeIn">
+            <Button 
+              className="bg-gradient-to-r from-olive via-olive-dark to-green-700 hover:from-olive-dark hover:via-green-700 hover:to-green-800 text-white px-8 py-6 text-xl font-semibold rounded-full shadow-lg transform hover:scale-105 transition-all duration-300" 
+              asChild
+            >
+              <Link to="/experience" className="flex items-center gap-3">
+                <Sparkles className="w-6 h-6" />
+                🚀 Commencez l'expérience
+              </Link>
+            </Button>
+            <p className="text-sm text-gray-600 mt-3">
+              Créez votre profil en 30 secondes avec notre IA révolutionnaire
+            </p>
+          </div>
+
+          {/* Séparateur */}
+          <div className="flex items-center justify-center my-8">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="px-4 text-gray-500 text-sm">ou</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+
+          {/* Boutons classiques */}
           <div className="flex flex-col md:flex-row gap-4 justify-center animate-fadeIn">
             <Button className="bg-olive hover:bg-olive-dark text-white px-8 py-6 text-lg" asChild>
               <Link to="/owner-profile">
