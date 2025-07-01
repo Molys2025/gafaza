@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import IntroExperience from './IntroExperience';
-import MediaRecorder from './MediaRecorder';
+import MediaRecorderComponent from './MediaRecorder';
 import AIAssistant from './AIAssistant';
 import UserTypeSelection from '../UserTypeSelection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -161,7 +160,7 @@ const ExperienceFlow = () => {
       case 'recording':
         return (
           <div className="min-h-screen bg-sand-light flex items-center justify-center px-4">
-            <MediaRecorder
+            <MediaRecorderComponent
               onMediaRecorded={handleMediaRecorded}
               maxDuration={30}
             />

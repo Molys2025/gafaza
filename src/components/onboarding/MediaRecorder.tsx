@@ -1,16 +1,15 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Video, Mic, Square, RotateCcw, Play, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface MediaRecorderProps {
+interface MediaRecorderComponentProps {
   onMediaRecorded: (mediaBlob: Blob, mediaType: 'video' | 'audio') => void;
   maxDuration?: number; // in seconds
 }
 
-const MediaRecorder = ({ onMediaRecorded, maxDuration = 30 }: MediaRecorderProps) => {
+const MediaRecorderComponent = ({ onMediaRecorded, maxDuration = 30 }: MediaRecorderComponentProps) => {
   const [recordingType, setRecordingType] = useState<'video' | 'audio' | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedMediaUrl, setRecordedMediaUrl] = useState<string | null>(null);
@@ -41,7 +40,7 @@ const MediaRecorder = ({ onMediaRecorded, maxDuration = 30 }: MediaRecorderProps
         videoRef.current.play();
       }
 
-      const mediaRecorder = new MediaRecorder(mediaStream);
+      const mediaRecorder = new (window as any).MediaRecorder(mediaStream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -280,4 +279,4 @@ const MediaRecorder = ({ onMediaRecorded, maxDuration = 30 }: MediaRecorderProps
   );
 };
 
-export default MediaRecorder;
+export default MediaRecorderComponent;
