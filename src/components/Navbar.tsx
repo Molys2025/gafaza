@@ -5,6 +5,7 @@ import { Menu, X, User, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +18,22 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const getProfileLink = () => {
+    if (!profile) return '/auth';
+    return profile.user_type === 'owner' ? '/owner-profile' : '/harvester-dashboard';
+  };
+
+  const getMyProfileLink = () => {
+    if (!profile) return '/auth';
+    return profile.user_type === 'owner' ? '/owner-my-profile' : '/harvester-profile';
   };
 
   return (
@@ -38,21 +50,33 @@ const Navbar = () => {
           <Link to="/search" className="hover:text-sand transition-colors">
             {t('common.search')}
           </Link>
-          <Link to="/owner-profile" className="hover:text-sand transition-colors">
-            {t('common.owner')}
-          </Link>
-          <Link to="/harvester-dashboard" className="hover:text-sand transition-colors">
-            {t('common.harvester')}
-          </Link>
-          <Link to="/messages" className="hover:text-sand transition-colors">
-            {t('common.messages')}
-          </Link>
-          <Link to="/payment" className="hover:text-sand transition-colors">
-            {t('common.payments')}
-          </Link>
-          <Link to="/evaluation" className="hover:text-sand transition-colors">
-            {t('common.evaluations')}
-          </Link>
+          
+          {/* Show different links based on user type */}
+          {profile?.user_type === 'owner' && (
+            <Link to="/owner-profile" className="hover:text-sand transition-colors">
+              {t('common.owner')}
+            </Link>
+          )}
+          
+          {profile?.user_type === 'harvester' && (
+            <Link to="/harvester-dashboard" className="hover:text-sand transition-colors">
+              {t('common.harvester')}
+            </Link>
+          )}
+          
+          {user && (
+            <>
+              <Link to="/messages" className="hover:text-sand transition-colors">
+                {t('common.messages')}
+              </Link>
+              <Link to="/payment" className="hover:text-sand transition-colors">
+                {t('common.payments')}
+              </Link>
+              <Link to="/evaluation" className="hover:text-sand transition-colors">
+                {t('common.evaluations')}
+              </Link>
+            </>
+          )}
           
           {/* Menu More avec À propos */}
           <DropdownMenu>
@@ -80,7 +104,7 @@ const Navbar = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white text-olive-dark border border-gray-200 shadow-lg z-50">
                 <DropdownMenuItem asChild>
-                  <Link to="/owner-profile" className="w-full px-4 py-2 hover:bg-sand-light">
+                  <Link to={getMyProfileLink()} className="w-full px-4 py-2 hover:bg-sand-light">
                     {t('nav.myProfile')}
                   </Link>
                 </DropdownMenuItem>
@@ -118,28 +142,40 @@ const Navbar = () => {
             <Link to="/search" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
               {t('common.search')}
             </Link>
-            <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-              {t('common.owner')}
-            </Link>
-            <Link to="/harvester-dashboard" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-              {t('common.harvester')}
-            </Link>
-            <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-              {t('common.messages')}
-            </Link>
-            <Link to="/payment" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-              {t('common.payments')}
-            </Link>
-            <Link to="/evaluation" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-              {t('common.evaluations')}
-            </Link>
+            
+            {profile?.user_type === 'owner' && (
+              <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                {t('common.owner')}
+              </Link>
+            )}
+            
+            {profile?.user_type === 'harvester' && (
+              <Link to="/harvester-dashboard" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                {t('common.harvester')}
+              </Link>
+            )}
+            
+            {user && (
+              <>
+                <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                  {t('common.messages')}
+                </Link>
+                <Link to="/payment" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                  {t('common.payments')}
+                </Link>
+                <Link to="/evaluation" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                  {t('common.evaluations')}
+                </Link>
+              </>
+            )}
+            
             <Link to="/about" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
               {t('common.about')}
             </Link>
             
             {user ? (
               <>
-                <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                <Link to={getMyProfileLink()} className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
                   {t('nav.myProfile')}
                 </Link>
                 <Button 

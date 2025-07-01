@@ -478,6 +478,47 @@ export type Database = {
           },
         ]
       }
+      harvester_profiles: {
+        Row: {
+          availability_radius_km: number | null
+          created_at: string
+          equipment_owned: string[] | null
+          experience_years: number | null
+          hourly_rate: number | null
+          id: string
+          specializations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          availability_radius_km?: number | null
+          created_at?: string
+          equipment_owned?: string[] | null
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id: string
+          specializations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          availability_radius_km?: number | null
+          created_at?: string
+          equipment_owned?: string[] | null
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          specializations?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "harvester_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_seekers: {
         Row: {
           active_status: boolean | null
@@ -877,6 +918,80 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      owner_profiles: {
+        Row: {
+          created_at: string
+          experience_years: number | null
+          grove_location: string | null
+          grove_size_hectares: number | null
+          id: string
+          olive_trees_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          experience_years?: number | null
+          grove_location?: string | null
+          grove_size_hectares?: number | null
+          id: string
+          olive_trees_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          experience_years?: number | null
+          grove_location?: string | null
+          grove_size_hectares?: number | null
+          id?: string
+          olive_trees_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_type: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_type?: string
+        }
+        Relationships: []
       }
       ratings: {
         Row: {
