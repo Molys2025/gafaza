@@ -19,8 +19,12 @@ serve(async (req) => {
       throw new Error('No media data provided');
     }
 
-    // Step 1: Extract audio and transcribe with Whisper
-    console.log(`Starting ${mediaType} analysis...`);
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    console.log(`Starting ${mediaType} analysis for user type: ${userType}`);
     
     // Convert base64 to binary
     const binaryData = Uint8Array.from(atob(videoData), c => c.charCodeAt(0));
@@ -34,16 +38,20 @@ serve(async (req) => {
     formData.append('model', 'whisper-1');
     formData.append('language', 'fr');
 
+    console.log('Sending transcription request to OpenAI...');
+
     const transcribeResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
       },
       body: formData,
     });
 
     if (!transcribeResponse.ok) {
-      throw new Error(`Transcription failed: ${await transcribeResponse.text()}`);
+      const errorText = await transcribeResponse.text();
+      console.error('Transcription failed:', errorText);
+      throw new Error(`Transcription failed: ${errorText}`);
     }
 
     const transcription = await transcribeResponse.json();
@@ -111,10 +119,12 @@ Extrais et structure les informations suivantes au format JSON :
 Réponds uniquement avec le JSON structuré, sans texte additionnel.
 `;
 
+    console.log('Sending analysis request to OpenAI GPT...');
+
     const analysisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -135,7 +145,9 @@ Réponds uniquement avec le JSON structuré, sans texte additionnel.
     });
 
     if (!analysisResponse.ok) {
-      throw new Error(`Analysis failed: ${await analysisResponse.text()}`);
+      const errorText = await analysisResponse.text();
+      console.error('Analysis failed:', errorText);
+      throw new Error(`Analysis failed: ${errorText}`);
     }
 
     const analysisResult = await analysisResponse.json();
@@ -165,6 +177,8 @@ Réponds uniquement avec le JSON structuré, sans texte additionnel.
     // Add the original transcription for reference
     extractedData.original_transcription = transcribedText;
     extractedData.media_type = mediaType;
+
+    console.log('Successfully processed media and extracted data');
 
     return new Response(JSON.stringify({
       success: true,
