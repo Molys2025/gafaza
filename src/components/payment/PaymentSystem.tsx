@@ -17,6 +17,20 @@ interface PaymentSystemProps {
 
 const PaymentSystem = ({ amount, description, onSuccess, onError }: PaymentSystemProps) => {
   const [activeTab, setActiveTab] = useState('flouci');
+  const [processing, setProcessing] = useState(false);
+
+  const handlePaymentSubmit = async (paymentData: any) => {
+    setProcessing(true);
+    try {
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      onSuccess({ ...paymentData, amount });
+    } catch (error) {
+      onError('Erreur lors du traitement du paiement');
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -46,33 +60,29 @@ const PaymentSystem = ({ amount, description, onSuccess, onError }: PaymentSyste
           
           <TabsContent value="card">
             <CardPayment 
-              amount={amount}
-              onSuccess={onSuccess}
-              onError={onError}
+              onSubmit={handlePaymentSubmit}
+              processing={processing}
             />
           </TabsContent>
           
           <TabsContent value="mobile">
             <MobilePayment 
-              amount={amount}
-              onSuccess={onSuccess}
-              onError={onError}
+              onSubmit={handlePaymentSubmit}
+              processing={processing}
             />
           </TabsContent>
           
           <TabsContent value="bank">
             <BankTransfer 
-              amount={amount}
-              onSuccess={onSuccess}
-              onError={onError}
+              onSubmit={handlePaymentSubmit}
+              processing={processing}
             />
           </TabsContent>
           
           <TabsContent value="cash">
             <CashPayment 
-              amount={amount}
-              onSuccess={onSuccess}
-              onError={onError}
+              onSubmit={handlePaymentSubmit}
+              processing={processing}
             />
           </TabsContent>
         </Tabs>

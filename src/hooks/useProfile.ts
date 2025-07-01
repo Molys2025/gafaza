@@ -65,7 +65,12 @@ export const useProfile = () => {
       }
 
       if (profileData) {
-        setProfile(profileData);
+        // Cast user_type to ensure type safety
+        const typedProfile: Profile = {
+          ...profileData,
+          user_type: profileData.user_type as 'owner' | 'harvester'
+        };
+        setProfile(typedProfile);
 
         // Fetch specific profile based on user type
         if (profileData.user_type === 'owner') {
@@ -157,7 +162,12 @@ export const useProfile = () => {
         if (harvesterError) throw harvesterError;
       }
 
-      setProfile(profileData);
+      // Cast the profile data to ensure type safety
+      const typedProfile: Profile = {
+        ...profileData,
+        user_type: profileData.user_type as 'owner' | 'harvester'
+      };
+      setProfile(typedProfile);
       
       toast({
         title: 'Profil créé',
