@@ -1,50 +1,41 @@
 ## Objectif
-Remplacer la connexion Supabase actuelle (projet `ctclmbrymczduwnncnnj`) par un nouveau projet Supabase que vous fournirez.
+Connecter l'application au nouveau projet Supabase `kefwnqnptjyqqnkqmxxl` en repartant de zéro (aucune migration de données).
 
-## Ce dont j'ai besoin de votre part
-Depuis votre nouveau projet Supabase (dashboard → Project Settings → API), me transmettre :
-1. **Project URL** (ex: `https://xxxxx.supabase.co`)
-2. **anon public key** (clé publique, sûre à mettre dans le code)
-3. **Project ID / ref** (l'identifiant `xxxxx` dans l'URL)
+## Étapes
 
-Ces valeurs sont publiques et peuvent être stockées dans le code (comme actuellement).
+### 1. Mettre à jour le client Supabase
+Modifier `src/integrations/supabase/client.ts` :
+- `SUPABASE_URL` → `https://kefwnqnptjyqqnkqmxxl.supabase.co`
+- `SUPABASE_PUBLISHABLE_KEY` → `sb_publishable_qDtyhwpGpfcsygnnaxEf8A_fZJiijf-`
 
-## Étapes d'implémentation
+### 2. Recréer le schéma sur le nouveau projet
+Le nouveau projet est vide. Il faut rejouer l'intégralité du schéma actuel :
+- Tables métier : `users`, `job_seekers`, `work_providers`, `profiles`, `owner_profiles`, `harvester_profiles`, `jobs`, `applications`, `conversations`, `messages`, `groups`, `group_members`, `group_invites`, `payments`, etc.
+- Fonctions security definer : `get_current_user_id`, `get_current_user_role`, `has_role`
+- Policies RLS (versions non-récursives déjà finalisées)
+- Triggers (`handle_new_user`, updated_at)
+- Storage buckets (avatars, vidéos onboarding)
 
-1. **Mise à jour du client Supabase**
-   - `src/integrations/supabase/client.ts` : remplacer `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` par les nouvelles valeurs.
-   - `supabase/config.toml` : remplacer `project_id` par le nouveau ref.
+Consolidation dans une nouvelle migration `supabase/migrations/<timestamp>-initial-schema-new-project.sql` regroupant l'état final actuel.
 
-2. **Migration du schéma vers le nouveau projet** (à faire par vous côté Supabase)
-   - Le nouveau projet est vide. Il faut recréer :
-     - Toutes les tables (`users`, `work_providers`, `harvesters`, `groups`, `messages`, `user_roles`, etc.)
-     - Les policies RLS (versions non-récursives déjà corrigées)
-     - Les fonctions (`has_role`, triggers)
-     - Les buckets de storage éventuels
-   - Option A : vous exportez le SQL depuis l'ancien projet et je vous aide à l'appliquer sur le nouveau.
-   - Option B : je régénère les migrations SQL nécessaires à partir des types actuels.
+### 3. Redéployer les Edge Functions
+Les fonctions existent déjà dans le repo (`analyze-onboarding-video`, `ai-profile-assistant`, `flouci-payment`, `flouci-payment-status`). Elles seront redéployées automatiquement sur le nouveau projet.
 
-3. **Reconfiguration des secrets edge functions**
-   Les secrets suivants doivent être reconfigurés dans le nouveau projet Supabase :
-   - `OPENAI_API_KEY`
-   - `MAPBOX_PUBLIC_TOKEN`
-   - Clés Flouci (payment)
-   - Tout autre secret utilisé par les edge functions
+### 4. Reconfigurer les secrets
+Les secrets sont liés à l'ancien projet. À reconfigurer sur le nouveau :
+- `OPENAI_API_KEY`
+- `FLOUCI_APP_TOKEN` / `FLOUCI_APP_SECRET` (si utilisés)
 
-4. **Redéploiement des edge functions**
-   - `analyze-onboarding-video`, `ai-profile-assistant`, `flouci-payment`, `flouci-payment-status`, `get-secret` seront redéployées automatiquement sur le nouveau projet.
+Je demanderai ces secrets via `add_secret` une fois le nouveau projet actif.
 
-5. **Régénération des types TypeScript**
-   - `src/integrations/supabase/types.ts` devra être régénéré à partir du schéma du nouveau projet une fois les tables créées.
+### 5. Vérification
+- Test connexion (Sign Up / Sign In)
+- Onglet **Admin > Tests** (CRUDTest + SupabaseDiagnostic) pour valider les policies RLS
+- Test création profil Cueilleur et Propriétaire
 
-6. **Test**
-   - Vérifier auth (sign up / sign in)
-   - Vérifier création d'enregistrements (profils, annonces)
-   - Vérifier les edge functions (OpenAI, Mapbox, Flouci)
+## Point d'attention
+La clé fournie est au format nouveau (`sb_publishable_...`) et non un JWT anon classique. Elle est compatible avec `@supabase/supabase-js` v2 récent, mais si vous rencontrez un souci d'auth, il faudra récupérer aussi la **anon key JWT** classique dans Settings → API du projet Supabase.
 
-## Points d'attention
-- **Perte de données** : les utilisateurs et données de l'ancien projet ne sont PAS transférés automatiquement. Si vous voulez migrer les données existantes, il faudra un export/import SQL.
-- **Fichiers dupliqués** : `src/lib/supabase.ts` utilise `import.meta.env.VITE_SUPABASE_*` mais ces vars ne sont pas définies — ce fichier semble inutilisé. À nettoyer ou aligner sur le nouveau projet.
-
-## Question avant de démarrer
-Confirmez-vous que vous voulez **abandonner les données de l'ancien projet** (ou souhaitez-vous les migrer) ? Et pouvez-vous me communiquer l'URL et l'anon key du nouveau projet ?
+## Confirmation nécessaire
+- L'ancien projet `ctclmbrymczduwnncnnj` peut-il être définitivement abandonné ?
+- Souhaitez-vous que je regroupe tout le schéma actuel dans une seule migration initiale pour le nouveau projet ?
