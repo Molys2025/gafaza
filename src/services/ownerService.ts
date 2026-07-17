@@ -97,16 +97,7 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
   
   const { data, error } = await supabase
     .from('work_providers')
-    .select(`
-      *,
-      users (
-        first_name,
-        last_name,
-        email,
-        phone,
-        whatsapp
-      )
-    `)
+    .select('*')
     .eq('id', userId)
     .single();
 
@@ -116,6 +107,19 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
   }
 
   if (!data) return null;
+
+  // work_providers.id référence auth.users : PostgREST ne peut plus embarquer
+  // public.users, on récupère la ligne correspondante séparément.
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('first_name, last_name, email, phone, whatsapp')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (userError) {
+    console.error('Error getting owner user data:', userError);
+    throw new Error(`Erreur lors de la récupération du profil: ${userError.message}`);
+  }
 
   // Transform the data to match our interface
   return {
@@ -130,10 +134,10 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
     city: undefined, // Remove reference to non-existent property
     region: undefined, // Remove reference to non-existent property
     created_at: data.created_at,
-    full_name: data.users ? `${data.users.first_name || ''} ${data.users.last_name || ''}`.trim() : undefined,
-    email: data.users?.email,
-    phone: data.users?.phone,
-    whatsapp: data.users?.whatsapp
+    full_name: userData ? `${userData.first_name || ''} ${userData.last_name || ''}`.trim() : undefined,
+    email: userData?.email ?? undefined,
+    phone: userData?.phone ?? undefined,
+    whatsapp: userData?.whatsapp ?? undefined
   };
 };
 
@@ -161,16 +165,7 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
   
   const { data, error } = await supabase
     .from('work_providers')
-    .select(`
-      *,
-      users (
-        first_name,
-        last_name,
-        email,
-        phone,
-        whatsapp
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -179,22 +174,42 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
   }
 
   console.log('Owners fetched:', data?.length || 0);
-  
-  return (data || []).map(item => ({
-    id: item.id,
-    business_name: item.business_name,
-    property_type: item.property_type,
-    property_size: item.property_size,
-    typical_daily_rate: item.typical_daily_rate,
-    average_rating: item.average_rating,
-    total_ratings: item.total_ratings,
-    verified: item.verified,
-    city: undefined, // Remove reference to non-existent property
-    region: undefined, // Remove reference to non-existent property
-    created_at: item.created_at,
-    full_name: item.users ? `${item.users.first_name || ''} ${item.users.last_name || ''}`.trim() : undefined,
-    email: item.users?.email,
-    phone: item.users?.phone,
-    whatsapp: item.users?.whatsapp
-  }));
+
+  const owners = data || [];
+  if (owners.length === 0) return [];
+
+  // work_providers.id référence auth.users : PostgREST ne peut plus embarquer
+  // public.users, on récupère les lignes correspondantes en une requête.
+  const { data: usersData, error: usersError } = await supabase
+    .from('users')
+    .select('id, first_name, last_name, email, phone, whatsapp')
+    .in('id', owners.map(o => o.id));
+
+  if (usersError) {
+    console.error('Error fetching owner user data:', usersError);
+    throw new Error(`Erreur lors de la récupération des propriétaires: ${usersError.message}`);
+  }
+
+  const usersById = new Map((usersData || []).map(u => [u.id, u]));
+
+  return owners.map(item => {
+    const user = usersById.get(item.id);
+    return {
+      id: item.id,
+      business_name: item.business_name,
+      property_type: item.property_type,
+      property_size: item.property_size,
+      typical_daily_rate: item.typical_daily_rate,
+      average_rating: item.average_rating,
+      total_ratings: item.total_ratings,
+      verified: item.verified,
+      city: undefined, // Remove reference to non-existent property
+      region: undefined, // Remove reference to non-existent property
+      created_at: item.created_at,
+      full_name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : undefined,
+      email: user?.email ?? undefined,
+      phone: user?.phone ?? undefined,
+      whatsapp: user?.whatsapp ?? undefined
+    };
+  });
 };
