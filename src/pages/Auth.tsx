@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,6 +18,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [role, setRole] = useState<'job_seeker' | 'work_provider'>('job_seeker');
   
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -44,7 +46,7 @@ const Auth = () => {
       if (isLogin) {
         success = await signIn(email, password);
       } else {
-        success = await signUp(email, password);
+        success = await signUp(email, password, role);
       }
 
       if (success) {
@@ -129,6 +131,36 @@ const Auth = () => {
                   placeholder="••••••••"
                   required
                 />
+              </div>
+            )}
+
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label>Je souhaite m'inscrire en tant que</Label>
+                <RadioGroup
+                  value={role}
+                  onValueChange={(v) => setRole(v as 'job_seeker' | 'work_provider')}
+                  className="grid grid-cols-2 gap-2"
+                >
+                  <label
+                    htmlFor="role-harvester"
+                    className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${
+                      role === 'job_seeker' ? 'border-olive bg-olive/5' : 'border-input'
+                    }`}
+                  >
+                    <RadioGroupItem value="job_seeker" id="role-harvester" />
+                    <span className="text-sm">Cueilleur</span>
+                  </label>
+                  <label
+                    htmlFor="role-owner"
+                    className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${
+                      role === 'work_provider' ? 'border-olive bg-olive/5' : 'border-input'
+                    }`}
+                  >
+                    <RadioGroupItem value="work_provider" id="role-owner" />
+                    <span className="text-sm">Propriétaire</span>
+                  </label>
+                </RadioGroup>
               </div>
             )}
 
