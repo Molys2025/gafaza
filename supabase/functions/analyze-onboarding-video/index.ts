@@ -60,55 +60,44 @@ serve(async (req) => {
     console.log('Transcription completed:', transcribedText);
 
     // Step 2: Analyze transcribed text with GPT to extract structured data
+    // The JSON schema below uses the EXACT column names of the target DB tables
+    // (public.work_providers / public.job_seekers) so the client can map 1:1.
     const analysisPrompt = `
-Analyse le texte suivant d'une présentation ${mediaType === 'video' ? 'vidéo' : 'audio'} d'un utilisateur qui s'inscrit sur une marketplace agricole (Zeytna) spécialisée dans la récolte d'olives.
+Analyse le texte suivant d'une présentation ${mediaType === 'video' ? 'vidéo' : 'audio'} d'un utilisateur qui s'inscrit sur la marketplace agricole Zeytna (récolte d'olives).
 
-Type d'utilisateur: ${userType === 'owner' ? 'Propriétaire d\'oliveraie' : 'Cueilleur/Récolteur'}
+Type d'utilisateur: ${userType === 'owner' ? "Propriétaire d'oliveraie (work_provider)" : 'Cueilleur / Récolteur (job_seeker)'}
 
 Texte à analyser: "${transcribedText}"
 
-Extrais et structure les informations suivantes au format JSON :
+Extrais et structure les informations au format JSON en utilisant EXACTEMENT les clés ci-dessous (les noms correspondent aux colonnes de la base). Utilise null quand l'info est absente.
 
 {
   "personal_info": {
     "name": "nom complet si mentionné",
-    "location": "ville, région ou zone géographique mentionnée",
-    "experience_years": "nombre d'années d'expérience si mentionné (nombre)",
-    "age_range": "tranche d'âge estimée si pertinent"
+    "first_name": "prénom si extractible",
+    "last_name": "nom de famille si extractible",
+    "location": "ville / région mentionnée",
+    "experience_years": "nombre d'années d'expérience (integer)"
   },
+  "phone": "numéro de téléphone si mentionné",
+  "whatsapp": "numéro WhatsApp si mentionné",
   ${userType === 'owner' ? `
   "property_info": {
-    "property_size": "taille de la propriété si mentionnée",
-    "tree_count": "nombre d'oliviers si mentionné (nombre)",
-    "olive_varieties": "variétés d'olives mentionnées",
-    "harvest_period": "période de récolte mentionnée",
-    "property_location": "localisation précise de la propriété"
-  },
-  "services_needed": {
-    "workers_needed": "nombre de cueilleurs recherchés (nombre)",
-    "work_type": "type de travail demandé",
-    "budget": "budget mentionné",
-    "urgency": "urgence de la demande",
-    "special_requirements": "exigences particulières"
+    "business_name": "nom de l'exploitation / entreprise",
+    "property_address": "adresse ou localisation précise de la propriété",
+    "property_size": "surface de la propriété en hectares (number)",
+    "tree_count": "nombre d'oliviers (integer)",
+    "olive_types": ["variétés d'olives mentionnées"]
   }` : `
   "skills_and_services": {
-    "specializations": ["liste des spécialisations mentionnées"],
-    "equipment_owned": ["équipements possédés"],
-    "availability": "disponibilité mentionnée",
-    "work_radius": "zone de travail acceptée",
-    "daily_rate": "tarif journalier si mentionné",
-    "team_size": "travaille seul ou en équipe"
+    "specializations": ["compétences / techniques maîtrisées → colonne skills"],
+    "daily_rate": "tarif journalier en TND (number) → colonne daily_rate",
+    "bio": "courte présentation / bio du cueilleur"
   },
   "work_preferences": {
-    "preferred_regions": ["régions préférées"],
-    "work_schedule": "horaires de travail préférés",
-    "transportation": "moyen de transport",
-    "accommodation": "besoin d'hébergement"
+    "preferred_regions": ["régions où le cueilleur accepte de travailler → colonne preferred_regions"]
   }`}
   "additional_info": {
-    "motivation": "motivation principale",
-    "contact_preference": "préférence de contact (téléphone, WhatsApp, etc.)",
-    "languages": ["langues parlées"],
     "special_notes": "informations importantes non catégorisées"
   },
   "confidence_score": "score de confiance sur l'extraction (0-100)",
