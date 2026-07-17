@@ -11,6 +11,13 @@ export interface OwnerData {
   description?: string;
 }
 
+/** Optional work_providers columns that can be seeded (e.g. from AI video onboarding). */
+export interface OwnerPropertyExtras {
+  property_size?: number | string | null;
+  tree_count?: number | string | null;
+  olive_types?: string[] | null;
+}
+
 export interface OwnerProfile {
   id: string;
   business_name?: string;
@@ -30,35 +37,51 @@ export interface OwnerProfile {
   whatsapp?: string;
 }
 
-export const createOwner = async (userId: string, data: OwnerData) => {
+export const createOwner = async (
+  userId: string,
+  data: OwnerData,
+  extras?: OwnerPropertyExtras,
+) => {
   console.log('Creating owner profile for user:', userId);
-  
-  // First, update the user's basic information and role
+
+  // The public.users row is created by a DB trigger on auth.users insert.
+  // We only update the mutable fields here (do NOT re-upsert / recreate it).
   const { error: userError } = await supabase
     .from('users')
-    .upsert({
-      id: userId,
+    .update({
       first_name: data.fullName.split(' ')[0],
       last_name: data.fullName.split(' ').slice(1).join(' '),
-      email: data.email,
       phone: data.phone,
       whatsapp: data.whatsapp,
-      role: 'work_provider'
-    });
+      role: 'work_provider',
+    })
+    .eq('id', userId);
 
   if (userError) {
     console.error('Error updating user:', userError);
     throw new Error(`Erreur lors de la mise à jour du profil utilisateur: ${userError.message}`);
   }
 
-  // Then create the work provider profile
+  // Then create/refresh the work_provider profile
+  const propertySize =
+    extras?.property_size != null && extras.property_size !== ''
+      ? Number(extras.property_size) || null
+      : null;
+  const treeCount =
+    extras?.tree_count != null && extras.tree_count !== ''
+      ? Number(extras.tree_count) || null
+      : null;
+
   const { error: ownerError } = await supabase
     .from('work_providers')
     .upsert({
       id: userId,
       business_name: data.company || data.fullName,
       property_address: data.location,
-      business_type: 'Propriétaire d\'oliveraie'
+      business_type: "Propriétaire d'oliveraie",
+      property_size: propertySize,
+      tree_count: treeCount,
+      olive_types: extras?.olive_types ?? null,
     });
 
   if (ownerError) {
