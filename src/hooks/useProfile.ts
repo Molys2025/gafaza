@@ -207,7 +207,10 @@ export const useProfile = () => {
       }
       if (updates.role) patch.role = updates.role;
 
-      const { error } = await supabase.from('users').update(patch).eq('id', user.id);
+      const { error } = await supabase
+        .from('users')
+        .update(patch as never)
+        .eq('id', user.id);
 
       if (error) throw error;
 
