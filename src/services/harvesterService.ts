@@ -1,5 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
 
+// Postgres rejects '' for date columns; empty form values must become null.
+const toDateOrNull = (value: string | null | undefined): string | null =>
+  value ? value : null;
+
 export interface HarvesterData {
   fullName: string;
   email: string;
@@ -47,8 +51,8 @@ export const createHarvester = async (userId: string, data: HarvesterData) => {
         whatsapp: data.whatsapp,
         experience_years: data.experience,
         skills: data.skills,
-        availability_start: data.availabilityStart,
-        availability_end: data.availabilityEnd,
+        availability_start: toDateOrNull(data.availabilityStart),
+        availability_end: toDateOrNull(data.availabilityEnd),
         preferred_regions: data.preferredRegions,
         daily_rate: data.dailyRate,
         bio: data.additionalInfo
@@ -162,8 +166,9 @@ export const updateHarvesterProfile = async (userId: string, updates: Partial<Ha
       whatsapp: updates.whatsapp,
       experience_years: updates.experience,
       skills: updates.skills,
-      availability_start: updates.availabilityStart,
-      availability_end: updates.availabilityEnd,
+      // undefined = champ non fourni (ignoré par supabase-js), '' = à effacer -> null
+      availability_start: updates.availabilityStart === undefined ? undefined : toDateOrNull(updates.availabilityStart),
+      availability_end: updates.availabilityEnd === undefined ? undefined : toDateOrNull(updates.availabilityEnd),
       preferred_regions: updates.preferredRegions,
       daily_rate: updates.dailyRate,
       bio: updates.additionalInfo
