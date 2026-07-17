@@ -113,9 +113,12 @@ const SearchFilters = ({ onFilterChange }: SearchFiltersProps) => {
         {/* Localisation */}
         <div>
           <Label className="mb-2 block">Localisation</Label>
-          <Select>
+          <Select
+            value={location[0] ?? ""}
+            onValueChange={(value) => setLocation(value ? [value] : [])}
+          >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sélectionnez une ou plusieurs régions" />
+              <SelectValue placeholder="Sélectionnez une région" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
