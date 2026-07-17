@@ -19,18 +19,18 @@ export const createHarvester = async (userId: string, data: HarvesterData) => {
   console.log('Creating harvester profile for user:', userId, data);
   
   try {
-    // First, update the user's basic information and role
+    // public.users row is created by a DB trigger on sign-up.
+    // Only update the mutable fields here.
     const { error: userError } = await supabase
       .from('users')
-      .upsert({
-        id: userId,
+      .update({
         first_name: data.fullName.split(' ')[0],
         last_name: data.fullName.split(' ').slice(1).join(' '),
-        email: data.email,
         phone: data.phone,
         whatsapp: data.whatsapp,
-        role: 'job_seeker'
-      });
+        role: 'job_seeker',
+      })
+      .eq('id', userId);
 
     if (userError) {
       console.error('Error updating user:', userError);

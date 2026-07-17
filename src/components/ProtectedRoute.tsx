@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requiresProfile = true }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
+  const { profile, hasDetailProfile, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,8 +33,10 @@ const ProtectedRoute = ({ children, requiresProfile = true }: ProtectedRouteProp
     return null;
   }
 
-  // If profile is required but doesn't exist, show profile setup
-  if (requiresProfile && !profile) {
+  // If profile is required but the detail profile (work_providers / job_seekers)
+  // doesn't exist yet, show the setup flow. `profile` (public.users) is always
+  // created by a DB trigger on sign-up, so we key off the detail row instead.
+  if (requiresProfile && (!profile || !hasDetailProfile)) {
     return <ProfileSetup />;
   }
 
