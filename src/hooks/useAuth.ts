@@ -40,16 +40,21 @@ export const useAuth = () => {
     };
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    role?: 'job_seeker' | 'work_provider'
+  ) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
-        }
+          emailRedirectTo: redirectUrl,
+          data: role ? { role } : undefined,
+        },
       });
 
       if (error) throw error;
