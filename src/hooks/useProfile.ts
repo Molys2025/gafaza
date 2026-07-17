@@ -3,40 +3,42 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { createOwner, type OwnerData } from '@/services/ownerService';
+import { createHarvester, type HarvesterData } from '@/services/harvesterService';
+
+type UserRole = 'work_provider' | 'job_seeker' | 'admin';
+type UiUserType = 'owner' | 'harvester';
+
+const roleToUserType = (role: UserRole): UiUserType | 'admin' =>
+  role === 'work_provider' ? 'owner' : role === 'job_seeker' ? 'harvester' : 'admin';
+
+const userTypeToRole = (t: UiUserType): 'work_provider' | 'job_seeker' =>
+  t === 'owner' ? 'work_provider' : 'job_seeker';
 
 export interface Profile {
   id: string;
-  user_type: 'owner' | 'harvester';
+  role: UserRole;
+  /** UI-friendly alias for role: work_provider -> owner, job_seeker -> harvester */
+  user_type: UiUserType | 'admin';
   first_name?: string;
   last_name?: string;
   email?: string;
   phone?: string;
-  address?: string;
-  created_at: string;
-  updated_at: string;
+  whatsapp?: string;
+  address?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export interface OwnerProfile {
-  id: string;
-  experience_years?: number;
-  olive_trees_count?: number;
-  grove_location?: string;
-  grove_size_hectares?: number;
-}
-
-export interface HarvesterProfile {
-  id: string;
-  experience_years?: number;
-  specializations?: string[];
-  equipment_owned?: string[];
-  availability_radius_km?: number;
-  hourly_rate?: number;
-}
+export type OwnerProfileRow =
+  import('@/integrations/supabase/types').Database['public']['Tables']['work_providers']['Row'];
+export type HarvesterProfileRow =
+  import('@/integrations/supabase/types').Database['public']['Tables']['job_seekers']['Row'];
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [ownerProfile, setOwnerProfile] = useState<OwnerProfile | null>(null);
-  const [harvesterProfile, setHarvesterProfile] = useState<HarvesterProfile | null>(null);
+  const [ownerProfile, setOwnerProfile] = useState<OwnerProfileRow | null>(null);
+  const [harvesterProfile, setHarvesterProfile] = useState<HarvesterProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -45,6 +47,9 @@ export const useProfile = () => {
     if (user) {
       fetchProfile();
     } else {
+      setProfile(null);
+      setOwnerProfile(null);
+      setHarvesterProfile(null);
       setLoading(false);
     }
   }, [user]);
@@ -53,51 +58,52 @@ export const useProfile = () => {
     if (!user) return;
 
     try {
-      // Fetch main profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+      const { data: userRow, error: userErr } = await supabase
+        .from('users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
+      if (userErr) throw userErr;
+      if (!userRow) {
+        setProfile(null);
+        return;
       }
 
-      if (profileData) {
-        // Cast user_type to ensure type safety
-        const typedProfile: Profile = {
-          ...profileData,
-          user_type: profileData.user_type as 'owner' | 'harvester'
-        };
-        setProfile(typedProfile);
+      const role = userRow.role as UserRole;
+      const typedProfile: Profile = {
+        id: userRow.id,
+        role,
+        user_type: roleToUserType(role),
+        first_name: userRow.first_name ?? undefined,
+        last_name: userRow.last_name ?? undefined,
+        email: userRow.email,
+        phone: userRow.phone ?? undefined,
+        whatsapp: userRow.whatsapp ?? undefined,
+        address: userRow.address,
+        created_at: userRow.created_at,
+        updated_at: userRow.updated_at,
+      };
+      setProfile(typedProfile);
 
-        // Fetch specific profile based on user type
-        if (profileData.user_type === 'owner') {
-          const { data: ownerData, error: ownerError } = await supabase
-            .from('owner_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-          if (ownerError && ownerError.code !== 'PGRST116') {
-            console.error('Error fetching owner profile:', ownerError);
-          } else if (ownerData) {
-            setOwnerProfile(ownerData);
-          }
-        } else if (profileData.user_type === 'harvester') {
-          const { data: harvesterData, error: harvesterError } = await supabase
-            .from('harvester_profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-          if (harvesterError && harvesterError.code !== 'PGRST116') {
-            console.error('Error fetching harvester profile:', harvesterError);
-          } else if (harvesterData) {
-            setHarvesterProfile(harvesterData);
-          }
-        }
+      if (role === 'work_provider') {
+        const { data, error } = await supabase
+          .from('work_providers')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (error) console.error('Error fetching work_provider:', error);
+        setOwnerProfile(data ?? null);
+        setHarvesterProfile(null);
+      } else if (role === 'job_seeker') {
+        const { data, error } = await supabase
+          .from('job_seekers')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (error) console.error('Error fetching job_seeker:', error);
+        setHarvesterProfile(data ?? null);
+        setOwnerProfile(null);
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
@@ -111,104 +117,65 @@ export const useProfile = () => {
     }
   };
 
+  /**
+   * Create/complete the detail profile (work_providers or job_seekers) for the current user.
+   * The `public.users` row is created by a DB trigger at sign-up; we only update its role
+   * here (in case the user picked their type after sign-up) and populate the detail table.
+   */
   const createProfile = async (userType: 'owner' | 'harvester', additionalData?: any) => {
     if (!user) return false;
 
     try {
       setLoading(true);
 
-      // Prepare profile data based on video analysis or traditional input
-      const profileData: any = {
-        id: user.id,
-        user_type: userType,
-        email: user.email,
-      };
+      const p = additionalData?.personal_info ?? {};
+      const fullName: string =
+        p.name ??
+        [additionalData?.first_name, additionalData?.last_name].filter(Boolean).join(' ') ??
+        user.email ??
+        '';
 
-      // If we have video-extracted data, use it
-      if (additionalData) {
-        if (additionalData.personal_info) {
-          profileData.first_name = additionalData.personal_info.name?.split(' ')[0] || additionalData.first_name;
-          profileData.last_name = additionalData.personal_info.name?.split(' ').slice(1).join(' ') || additionalData.last_name;
-          profileData.address = additionalData.personal_info.location || additionalData.address;
-        }
-        
-        // Merge any additional fields
-        Object.assign(profileData, {
-          first_name: profileData.first_name || additionalData.first_name,
-          last_name: profileData.last_name || additionalData.last_name,
-          phone: additionalData.phone,
-          address: profileData.address || additionalData.address,
-        });
-      }
-
-      // Create main profile
-      const { data: createdProfile, error: profileError } = await supabase
-        .from('profiles')
-        .insert(profileData)
-        .select()
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Create specific profile based on user type
       if (userType === 'owner') {
-        const ownerData: any = {
-          id: user.id,
+        const prop = additionalData?.property_info ?? {};
+        const data: OwnerData = {
+          fullName: fullName || (user.email ?? ''),
+          email: user.email ?? '',
+          phone: additionalData?.phone ?? '',
+          whatsapp: additionalData?.whatsapp,
+          company: prop.business_name,
+          location: prop.property_address ?? p.location ?? '',
+          description: additionalData?.additional_info?.special_notes,
         };
-
-        // Map video-extracted data to owner profile
-        if (additionalData?.property_info) {
-          ownerData.olive_trees_count = parseInt(additionalData.property_info.tree_count) || null;
-          ownerData.grove_location = additionalData.property_info.property_location || additionalData.property_info.location;
-          ownerData.grove_size_hectares = parseFloat(additionalData.property_info.property_size) || null;
-        }
-
-        if (additionalData?.personal_info?.experience_years) {
-          ownerData.experience_years = parseInt(additionalData.personal_info.experience_years);
-        }
-
-        const { error: ownerError } = await supabase
-          .from('owner_profiles')
-          .insert(ownerData);
-
-        if (ownerError) throw ownerError;
-        
-      } else if (userType === 'harvester') {
-        const harvesterData: any = {
-          id: user.id,
+        await createOwner(user.id, data, {
+          property_size: prop.property_size,
+          tree_count: prop.tree_count,
+          olive_types: prop.olive_types,
+        });
+      } else {
+        const s = additionalData?.skills_and_services ?? {};
+        const data: HarvesterData = {
+          fullName: fullName || (user.email ?? ''),
+          email: user.email ?? '',
+          phone: additionalData?.phone ?? '',
+          whatsapp: additionalData?.whatsapp,
+          experience: Number(p.experience_years) || 0,
+          skills: s.specializations ?? [],
+          availabilityStart: '',
+          availabilityEnd: '',
+          preferredRegions: additionalData?.work_preferences?.preferred_regions ?? [],
+          dailyRate: Number(s.daily_rate) || 0,
+          additionalInfo: additionalData?.additional_info?.special_notes,
         };
-
-        // Map video-extracted data to harvester profile
-        if (additionalData?.skills_and_services) {
-          harvesterData.specializations = additionalData.skills_and_services.specializations || [];
-          harvesterData.equipment_owned = additionalData.skills_and_services.equipment_owned || [];
-          harvesterData.hourly_rate = parseFloat(additionalData.skills_and_services.daily_rate) || null;
-          harvesterData.availability_radius_km = parseInt(additionalData.skills_and_services.work_radius) || null;
-        }
-
-        if (additionalData?.personal_info?.experience_years) {
-          harvesterData.experience_years = parseInt(additionalData.personal_info.experience_years);
-        }
-
-        const { error: harvesterError } = await supabase
-          .from('harvester_profiles')
-          .insert(harvesterData);
-
-        if (harvesterError) throw harvesterError;
+        await createHarvester(user.id, data);
       }
 
-      // Cast the profile data to ensure type safety
-      const typedProfile: Profile = {
-        ...createdProfile,
-        user_type: createdProfile.user_type as 'owner' | 'harvester'
-      };
-      setProfile(typedProfile);
-      
+      await fetchProfile();
+
       toast({
         title: 'Profil créé',
-        description: additionalData ? 
-          'Votre profil a été créé automatiquement grâce à l\'IA !' : 
-          'Votre profil a été créé avec succès',
+        description: additionalData
+          ? "Votre profil a été créé automatiquement grâce à l'IA !"
+          : 'Votre profil a été créé avec succès',
       });
 
       return true;
@@ -216,7 +183,7 @@ export const useProfile = () => {
       console.error('Error creating profile:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer le profil',
+        description: error?.message ?? 'Impossible de créer le profil',
         variant: 'destructive',
       });
       return false;
@@ -229,10 +196,18 @@ export const useProfile = () => {
     if (!user || !profile) return false;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+      const patch: Record<string, unknown> = {};
+      if (updates.first_name !== undefined) patch.first_name = updates.first_name;
+      if (updates.last_name !== undefined) patch.last_name = updates.last_name;
+      if (updates.phone !== undefined) patch.phone = updates.phone;
+      if (updates.whatsapp !== undefined) patch.whatsapp = updates.whatsapp;
+      if (updates.address !== undefined) patch.address = updates.address;
+      if (updates.user_type && updates.user_type !== 'admin') {
+        patch.role = userTypeToRole(updates.user_type);
+      }
+      if (updates.role) patch.role = updates.role;
+
+      const { error } = await supabase.from('users').update(patch).eq('id', user.id);
 
       if (error) throw error;
 
@@ -263,5 +238,7 @@ export const useProfile = () => {
     createProfile,
     updateProfile,
     refetch: fetchProfile,
+    /** True when the detail profile row (work_providers/job_seekers) is present */
+    hasDetailProfile: !!(ownerProfile || harvesterProfile),
   };
 };
