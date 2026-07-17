@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Grid, List, MapPin, Calendar, User, ThumbsUp, ArrowDownUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,14 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 interface SearchResultsProps {
   results: any[];
@@ -25,7 +18,14 @@ interface SearchResultsProps {
 }
 
 const SearchResults = ({ results, onDisplayModeChange, currentDisplayMode }: SearchResultsProps) => {
+  const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("pertinence");
+
+  const goToProfile = (result: any) => {
+    if (result.type === 'harvester') {
+      navigate(`/harvester/${result.id}`);
+    }
+  };
 
   return (
     <div>
@@ -120,7 +120,7 @@ const SearchResults = ({ results, onDisplayModeChange, currentDisplayMode }: Sea
                       ) : (
                         <div className="text-sm text-gray-600">{result.treeCount} oliviers</div>
                       )}
-                      <Button size="sm" variant="outline" className="text-olive border-olive hover:bg-olive hover:text-white">
+                      <Button size="sm" variant="outline" className="text-olive border-olive hover:bg-olive hover:text-white" onClick={() => goToProfile(result)}>
                         Voir le profil
                       </Button>
                     </div>
@@ -159,7 +159,7 @@ const SearchResults = ({ results, onDisplayModeChange, currentDisplayMode }: Sea
                     ) : (
                       <div className="text-sm text-gray-600">{result.treeCount} oliviers</div>
                     )}
-                    <Button size="sm" variant="outline" className="text-olive border-olive hover:bg-olive hover:text-white">
+                    <Button size="sm" variant="outline" className="text-olive border-olive hover:bg-olive hover:text-white" onClick={() => goToProfile(result)}>
                       Voir
                     </Button>
                   </div>
@@ -167,28 +167,6 @@ const SearchResults = ({ results, onDisplayModeChange, currentDisplayMode }: Sea
               ))}
             </div>
           )}
-
-          <div className="mt-6">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious href="#" />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#" isActive>1</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">2</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">3</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationNext href="#" />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
         </>
       )}
     </div>
