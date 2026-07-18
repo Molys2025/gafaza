@@ -253,13 +253,24 @@ const OwnerJobApplications = () => {
                         Refuser
                       </Button>
                       {application.job_seeker_id && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate(`/harvester/${application.job_seeker_id}`)}
-                        >
-                          Voir le profil
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => navigate(`/harvester/${application.job_seeker_id}`)}
+                          >
+                            Voir le profil
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              navigate(`/messages?user=${application.job_seeker_id}&job=${job.id}`)
+                            }
+                          >
+                            Contacter
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>

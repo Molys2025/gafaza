@@ -139,7 +139,7 @@ const HarvesterPublicProfile = () => {
         <div className="mt-8">
           <Button
             className="bg-olive hover:bg-olive-dark"
-            onClick={() => navigate('/messages')}
+            onClick={() => navigate(`/messages?user=${profile.id}`)}
           >
             <MessageCircle className="mr-2 h-4 w-4" /> Contacter
           </Button>

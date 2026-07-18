@@ -1,134 +1,83 @@
-
-import { useState } from "react";
-import { Avatar } from "@/components/ui/avatar";
-import { Star, Search } from "lucide-react";
+import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-
-interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  online: boolean;
-}
-
-interface Message {
-  text: string;
-  timestamp: string;
-  read: boolean;
-}
-
-interface Conversation {
-  id: string;
-  user: User;
-  lastMessage: Message;
-  unread: number;
-  status: "normal" | "important" | "archived";
-}
+import type { ConversationSummary } from "@/services/messageService";
 
 interface ConversationListProps {
-  conversations: Conversation[];
+  conversations: ConversationSummary[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (conversationId: string) => void;
 }
 
+const formatTimestamp = (value: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  const sameDay = date.toDateString() === new Date().toDateString();
+
+  return sameDay
+    ? date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+};
+
 const ConversationList = ({ conversations, selectedId, onSelect }: ConversationListProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  const filteredConversations = conversations.filter(conv => 
-    conv.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.lastMessage.text.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleSelectConversation = (id: string, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    onSelect(id);
-  };
-
-  if (filteredConversations.length === 0) {
+  if (conversations.length === 0) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        {searchQuery ? "Aucune conversation ne correspond à votre recherche" : "Aucune conversation trouvée"}
+      <div className="p-6 text-center text-sm text-gray-500">
+        Aucune conversation
       </div>
     );
   }
 
-  const formatDate = (timestamp: string) => {
-    // This is a simple mock implementation
-    // In a real app, you would use date-fns or similar library
-    return timestamp;
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-        <Input 
-          placeholder="Rechercher..." 
-          className="pl-9"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-      
-      <div className="divide-y">
-        {filteredConversations.map((conversation) => (
-          <div
-            key={conversation.id}
+    <ul className="divide-y">
+      {conversations.map((conversation) => (
+        <li key={conversation.id}>
+          <button
+            type="button"
+            onClick={() => onSelect(conversation.id)}
             className={cn(
-              "p-4 hover:bg-gray-50 cursor-pointer transition-colors",
-              selectedId === conversation.id && "bg-gray-100 hover:bg-gray-100",
-              conversation.status === "archived" && "opacity-70"
+              "w-full text-left p-4 hover:bg-gray-50 transition-colors flex gap-3",
+              selectedId === conversation.id && "bg-olive/5",
             )}
-            onClick={(e) => handleSelectConversation(conversation.id, e)}
           >
-            <div className="flex items-start">
-              <div className="relative mr-3">
-                <Avatar className="h-10 w-10">
-                  <img src={conversation.user.avatar} alt={conversation.user.name} />
-                </Avatar>
-                {conversation.user.online && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></span>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-gray-900 truncate">
-                    {conversation.user.name}
-                  </h4>
-                  <div className="flex items-center space-x-1">
-                    {conversation.status === "important" && (
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    )}
-                    <span className="text-xs text-gray-500">
-                      {formatDate(conversation.lastMessage.timestamp)}
-                    </span>
-                  </div>
+            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+              {conversation.otherParticipant?.picture ? (
+                <img
+                  src={conversation.otherParticipant.picture}
+                  alt={conversation.otherParticipant.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <User className="h-5 w-5" />
                 </div>
-                
-                <p className={cn(
-                  "text-sm truncate mt-1",
-                  conversation.unread > 0 ? "font-medium text-gray-900" : "text-gray-500"
-                )}>
-                  {conversation.lastMessage.text}
-                </p>
-                
-                {conversation.unread > 0 && (
-                  <div className="mt-1 flex justify-end">
-                    <Badge variant="default" className="bg-olive text-white">
-                      {conversation.unread}
-                    </Badge>
-                  </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-olive-dark truncate">
+                  {conversation.otherParticipant?.name ?? "Utilisateur"}
+                </span>
+                <span className="text-xs text-gray-400 flex-shrink-0">
+                  {formatTimestamp(conversation.last_message_at)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 mt-1">
+                <span className="text-sm text-gray-500 truncate">
+                  {conversation.lastMessage ?? "Nouvelle conversation"}
+                </span>
+                {conversation.unreadCount > 0 && (
+                  <span className="flex-shrink-0 bg-olive text-white text-xs rounded-full px-2 py-0.5">
+                    {conversation.unreadCount}
+                  </span>
                 )}
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 };
 
