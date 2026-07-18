@@ -58,7 +58,7 @@ function App() {
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute requiredRole="admin" requiresProfile={false}><Admin /></ProtectedRoute>} />
             </Routes>
             <LanguageSelector />
             <Toaster />
