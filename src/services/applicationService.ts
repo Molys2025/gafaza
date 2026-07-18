@@ -157,6 +157,29 @@ export const respondToApplication = async (
   }
 };
 
+/**
+ * Marks an accepted application as completed, which is what unlocks reviews
+ * for both parties. Guarded server-side by the complete_application RPC:
+ * only the job owner may call it, and only on an accepted application.
+ */
+export const completeApplication = async (applicationId: string): Promise<void> => {
+  const { error } = await supabase.rpc('complete_application', {
+    application_id_param: applicationId,
+  });
+
+  if (error) {
+    console.error('Error completing application:', error);
+
+    if (error.message?.includes('only the job owner')) {
+      throw new Error("Seul le propriétaire de l'annonce peut clôturer cette mission.");
+    }
+    if (error.message?.includes('only an accepted application')) {
+      throw new Error('Seule une candidature acceptée peut être clôturée.');
+    }
+    throw new Error(`Erreur lors de la clôture de la mission: ${error.message}`);
+  }
+};
+
 /** Job seeker withdrawing their own application. */
 export const withdrawApplication = async (applicationId: string): Promise<void> => {
   const { error } = await supabase

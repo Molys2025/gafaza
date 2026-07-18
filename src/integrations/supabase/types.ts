@@ -1660,6 +1660,10 @@ export type Database = {
             }
             Returns: string
           }
+      complete_application: {
+        Args: { application_id_param: string }
+        Returns: undefined
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -1844,6 +1848,10 @@ export type Database = {
         Returns: string
       }
       gettransactionid: { Args: never; Returns: unknown }
+      is_group_admin: {
+        Args: { group_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { group_id_param: string; user_id_param: string }
         Returns: boolean
