@@ -40,6 +40,7 @@ const Payment = lazy(() => import("./pages/Payment"));
 const Evaluation = lazy(() => import("./pages/Evaluation"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Account = lazy(() => import("./pages/Account"));
+const OwnerPublicProfile = lazy(() => import("./pages/OwnerPublicProfile"));
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ function App() {
               <Route path="/owner-payments" element={<ProtectedRoute><OwnerPayments /></ProtectedRoute>} />
               <Route path="/harvester-profile" element={<ProtectedRoute><HarvesterProfile /></ProtectedRoute>} />
               <Route path="/harvester/:id" element={<HarvesterPublicProfile />} />
+              <Route path="/owner/:id" element={<OwnerPublicProfile />} />
               <Route path="/harvester-dashboard" element={<ProtectedRoute><HarvesterDashboard /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />

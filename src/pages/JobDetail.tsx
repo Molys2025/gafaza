@@ -251,6 +251,18 @@ const JobDetail = () => {
           </div>
         )}
 
+        {job.work_provider_id && (
+          <div className="mt-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/owner/${job.work_provider_id}`)}
+            >
+              Voir le profil du propriétaire
+            </Button>
+          </div>
+        )}
+
         <div className="mt-8 pt-6 border-t">
           {!user ? (
             <div className="flex flex-wrap items-center gap-3">
