@@ -7,58 +7,50 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 }
 
-serve(async (req) => {
-  console.log(`Requête reçue: ${req.method} ${req.url}`)
+// SECURITY: this endpoint is publicly reachable, so it must NEVER be able to
+// return an arbitrary environment variable. Only secrets that are safe to ship
+// to a browser (public API tokens) may be listed here. Anything server-side
+// (service role key, payment provider secrets) must stay out of this list and
+// be used from inside an Edge Function instead.
+const PUBLIC_SECRET_ALLOWLIST = new Set([
+  'MAPBOX_PUBLIC_TOKEN',
+])
 
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+
   try {
     const { name } = await req.json()
-    console.log(`Recherche du secret: ${name}`)
 
-    if (!name) {
-      console.error('Nom du secret manquant')
-      return new Response(
-        JSON.stringify({ error: 'Secret name is required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
+    if (!name || typeof name !== 'string') {
+      return json({ error: 'Secret name is required' }, 400)
     }
 
-    // Récupérer le secret depuis les variables d'environnement
+    if (!PUBLIC_SECRET_ALLOWLIST.has(name)) {
+      // Same response as "not found": do not let callers probe which
+      // environment variables exist on the server.
+      console.warn(`Rejected non-allowlisted secret request: ${name}`)
+      return json({ error: 'Secret not found' }, 404)
+    }
+
     const value = Deno.env.get(name)
-    console.log(`Secret trouvé: ${name} = ${value ? 'OUI (longueur: ' + value.length + ')' : 'NON'}`)
 
     if (!value) {
-      console.error(`Secret non trouvé: ${name}`)
-      return new Response(
-        JSON.stringify({ error: `Secret '${name}' not found` }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
+      console.error(`Allowlisted secret not configured: ${name}`)
+      return json({ error: 'Secret not found' }, 404)
     }
 
-    console.log('Retour du secret avec succès')
-    return new Response(
-      JSON.stringify({ value }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    return json({ value })
   } catch (error) {
-    console.error('Erreur dans la fonction:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    console.error('Error in get-secret function:', error)
+    return json({ error: 'Internal server error' }, 500)
   }
 })
