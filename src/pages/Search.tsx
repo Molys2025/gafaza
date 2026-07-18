@@ -1,12 +1,14 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search as SearchIcon, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import SearchFilters from "@/components/search/SearchFilters";
 import SearchResults from "@/components/search/SearchResults";
-import MapView from "@/components/search/MapView";
+// mapbox-gl (~1,5 MB) isolé dans son propre chunk : chargé seulement au passage
+// en vue carte, pas au montage de la page (vue liste par défaut).
+const MapView = lazy(() => import("@/components/search/MapView"));
 import {
   getAllHarvesters,
   searchHarvesters,
@@ -131,7 +133,16 @@ const Search = () => {
               </Button>
             </div>
           ) : displayMode === 'map' ? (
-            <MapView results={results} filters={filters} />
+            <Suspense
+              fallback={
+                <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow">
+                  <Loader2 className="h-8 w-8 animate-spin text-olive mb-3" />
+                  <div className="text-gray-500">Chargement de la carte...</div>
+                </div>
+              }
+            >
+              <MapView results={results} filters={filters} />
+            </Suspense>
           ) : (
             <SearchResults
               results={results}

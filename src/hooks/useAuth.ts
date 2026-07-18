@@ -102,6 +102,31 @@ export const useAuth = () => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+        },
+      });
+
+      // Redirection vers Google : pas de toast succès ici (la page navigue).
+      if (error) throw error;
+      return true;
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      toast({
+        title: 'Erreur de connexion',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -127,6 +152,7 @@ export const useAuth = () => {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
   };
 };
