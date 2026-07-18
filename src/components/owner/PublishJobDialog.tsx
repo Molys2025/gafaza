@@ -8,11 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Briefcase } from "lucide-react";
+import { CalendarIcon, Briefcase, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { createJob, type JobPaymentType } from "@/services/jobService";
 
 interface OliveGrove {
   id: number;
@@ -25,28 +27,34 @@ interface OliveGrove {
 
 interface PublishJobDialogProps {
   oliveGrove: OliveGrove;
+  onPublished?: () => void;
 }
 
-const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
+/** yyyy-MM-dd, the format Postgres date columns expect. */
+const toDateColumn = (date: Date) => format(date, 'yyyy-MM-dd');
+
+const PublishJobDialog = ({ oliveGrove, onPublished }: PublishJobDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [isPublishing, setIsPublishing] = useState(false);
   const [formData, setFormData] = useState({
     title: `Cueillette d'olives - ${oliveGrove.name}`,
     workersNeeded: 3,
     dailyRate: 45,
-    paymentType: 'daily',
+    paymentType: 'daily' as JobPaymentType,
     description: '',
-    workingHours: '8h00 - 17h00',
+    workingHours: { start: '08:00', end: '17:00', break_time: '1h' },
     facilities: {
       water: true,
       parking: true,
       shelter: true,
       restroom: true,
-      tools: true
+      tools_provided: true
     }
   });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -55,7 +63,7 @@ const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
     }));
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!startDate || !endDate) {
       toast({
         title: "Erreur",
@@ -65,20 +73,59 @@ const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
       return;
     }
 
-    // Simulation de la publication
-    toast({
-      title: "Annonce publiée !",
-      description: `Votre annonce "${formData.title}" a été publiée avec succès.`,
-    });
-    
-    console.log("Job published:", {
-      ...formData,
-      oliveGrove,
-      startDate,
-      endDate
-    });
-    
-    setIsOpen(false);
+    if (endDate < startDate) {
+      toast({
+        title: "Erreur",
+        description: "La date de fin doit être postérieure à la date de début.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour publier une annonce.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      await createJob(user.id, {
+        title: formData.title,
+        description: formData.description,
+        jobType: 'harvest',
+        startDate: toDateColumn(startDate),
+        endDate: toDateColumn(endDate),
+        workersNeeded: formData.workersNeeded,
+        paymentType: formData.paymentType,
+        paymentAmount: formData.dailyRate,
+        workingHours: formData.workingHours,
+        facilities: formData.facilities,
+        locationAddress: oliveGrove.location,
+        treeCount: oliveGrove.trees,
+        oliveTypes: oliveGrove.variety ? [oliveGrove.variety] : null,
+      });
+
+      toast({
+        title: "Annonce publiée !",
+        description: `Votre annonce "${formData.title}" est maintenant visible par les cueilleurs.`,
+      });
+
+      setIsOpen(false);
+      onPublished?.();
+    } catch (error: any) {
+      console.error('Error publishing job:', error);
+      toast({
+        title: "Erreur",
+        description: error?.message || "La publication de l'annonce a échoué.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
@@ -197,7 +244,7 @@ const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
               </div>
 
               <div>
-                <Label htmlFor="dailyRate">Tarif journalier (TND)</Label>
+                <Label htmlFor="dailyRate">Montant du paiement (TND)</Label>
                 <Input
                   id="dailyRate"
                   type="number"
@@ -211,26 +258,38 @@ const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
 
             <div>
               <Label htmlFor="paymentType">Type de paiement</Label>
-              <Select value={formData.paymentType} onValueChange={(value) => handleInputChange('paymentType', value)}>
+              <Select value={formData.paymentType} onValueChange={(value) => handleInputChange('paymentType', value as JobPaymentType)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="daily">Journalier</SelectItem>
-                  <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                  <SelectItem value="total">Forfait total</SelectItem>
+                  <SelectItem value="hourly">Horaire</SelectItem>
+                  <SelectItem value="fixed">Forfait total</SelectItem>
+                  <SelectItem value="per_kg">Au kilo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="workingHours">Horaires de travail</Label>
-              <Input
-                id="workingHours"
-                value={formData.workingHours}
-                onChange={(e) => handleInputChange('workingHours', e.target.value)}
-                placeholder="Ex: 8h00 - 17h00"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="hoursStart">Heure de début</Label>
+                <Input
+                  id="hoursStart"
+                  type="time"
+                  value={formData.workingHours.start}
+                  onChange={(e) => handleInputChange('workingHours', { ...formData.workingHours, start: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="hoursEnd">Heure de fin</Label>
+                <Input
+                  id="hoursEnd"
+                  type="time"
+                  value={formData.workingHours.end}
+                  onChange={(e) => handleInputChange('workingHours', { ...formData.workingHours, end: e.target.value })}
+                />
+              </div>
             </div>
 
             <div>
@@ -282,8 +341,8 @@ const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    checked={formData.facilities.tools}
-                    onChange={(e) => handleInputChange('facilities', {...formData.facilities, tools: e.target.checked})}
+                    checked={formData.facilities.tools_provided}
+                    onChange={(e) => handleInputChange('facilities', {...formData.facilities, tools_provided: e.target.checked})}
                   />
                   <span>Outils fournis</span>
                 </label>
@@ -292,11 +351,12 @@ const PublishJobDialog = ({ oliveGrove }: PublishJobDialogProps) => {
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isPublishing}>
               Annuler
             </Button>
-            <Button onClick={handlePublish} className="bg-olive hover:bg-olive-dark">
-              Publier l'annonce
+            <Button onClick={handlePublish} className="bg-olive hover:bg-olive-dark" disabled={isPublishing}>
+              {isPublishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPublishing ? "Publication..." : "Publier l'annonce"}
             </Button>
           </div>
         </div>
