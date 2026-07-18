@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,10 @@ import {
   X,
 } from "lucide-react";
 import { getJobById, type JobRow, type JobType } from "@/services/jobService";
+import { getMyApplicationForJob, type ApplicationRow } from "@/services/applicationService";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import ApplyToJobDialog from "@/components/jobs/ApplyToJobDialog";
 
 const JOB_TYPE_LABELS: Record<JobType, string> = {
   harvest: "Récolte",
@@ -48,12 +52,24 @@ const asRecord = (value: unknown): Record<string, unknown> =>
     ? (value as Record<string, unknown>)
     : {};
 
+const APPLICATION_STATUS_LABELS: Record<string, string> = {
+  pending: "Candidature envoyée, en attente de réponse",
+  accepted: "Candidature acceptée",
+  rejected: "Candidature refusée",
+  completed: "Mission terminée",
+  cancelled: "Mission annulée",
+};
+
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [job, setJob] = useState<JobRow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [application, setApplication] = useState<ApplicationRow | null>(null);
+  const [applyOpen, setApplyOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -67,6 +83,23 @@ const JobDetail = () => {
       })
       .finally(() => setIsLoading(false));
   }, [id]);
+
+  // Only job seekers can apply, so only they need the existing-application lookup.
+  const isJobSeeker = profile?.role === 'job_seeker';
+
+  const refreshApplication = useCallback(() => {
+    if (!id || !user || !isJobSeeker) {
+      setApplication(null);
+      return;
+    }
+    getMyApplicationForJob(user.id, id)
+      .then(setApplication)
+      .catch((error) => console.error("Error loading own application:", error));
+  }, [id, user, isJobSeeker]);
+
+  useEffect(() => {
+    refreshApplication();
+  }, [refreshApplication]);
 
   if (isLoading) {
     return (
@@ -219,13 +252,49 @@ const JobDetail = () => {
         )}
 
         <div className="mt-8 pt-6 border-t">
-          {/* Candidatures : la table applications est prête côté base,
-              le parcours front arrive dans le lot suivant. */}
-          <Button className="bg-olive hover:bg-olive-dark" disabled>
-            Postuler (bientôt disponible)
-          </Button>
+          {!user ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <Button className="bg-olive hover:bg-olive-dark" onClick={() => navigate('/auth')}>
+                Se connecter pour postuler
+              </Button>
+              <span className="text-sm text-gray-500">
+                Créez un compte cueilleur en quelques secondes.
+              </span>
+            </div>
+          ) : !isJobSeeker ? (
+            <p className="text-sm text-gray-500">
+              Seuls les comptes cueilleur peuvent postuler à une annonce.
+            </p>
+          ) : application ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant="secondary">
+                {APPLICATION_STATUS_LABELS[application.status ?? 'pending'] ?? application.status}
+              </Badge>
+              <Button variant="outline" onClick={() => navigate('/my-applications')}>
+                Voir mes candidatures
+              </Button>
+            </div>
+          ) : job.status !== 'active' || spotsLeft === 0 ? (
+            <Button className="bg-olive hover:bg-olive-dark" disabled>
+              Cette annonce n'accepte plus de candidatures
+            </Button>
+          ) : (
+            <Button className="bg-olive hover:bg-olive-dark" onClick={() => setApplyOpen(true)}>
+              Postuler
+            </Button>
+          )}
         </div>
       </div>
+
+      {user && isJobSeeker && (
+        <ApplyToJobDialog
+          job={job}
+          jobSeekerId={user.id}
+          open={applyOpen}
+          onOpenChange={setApplyOpen}
+          onApplied={refreshApplication}
+        />
+      )}
     </div>
   );
 };

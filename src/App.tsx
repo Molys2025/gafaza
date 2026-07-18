@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import Jobs from "./pages/Jobs";
 import JobDetail from "./pages/JobDetail";
+import MyApplications from "./pages/MyApplications";
 import OwnerProfile from "./pages/OwnerProfile";
 import OwnerMyProfile from "./pages/OwnerMyProfile";
 import OwnerOliveTrees from "./pages/OwnerOliveTrees";
@@ -47,6 +48,7 @@ function App() {
               <Route path="/search" element={<Search />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/my-applications" element={<ProtectedRoute requiredRole="job_seeker"><MyApplications /></ProtectedRoute>} />
               <Route path="/owner-profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
               <Route path="/owner-my-profile" element={<ProtectedRoute><OwnerMyProfile /></ProtectedRoute>} />
               <Route path="/owner-olive-trees" element={<ProtectedRoute><OwnerOliveTrees /></ProtectedRoute>} />
