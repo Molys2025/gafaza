@@ -24,33 +24,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-// Régions de Tunisie
-const regions = [
-  "Tunis",
-  "Ariana",
-  "Ben Arous",
-  "Manouba",
-  "Nabeul",
-  "Zaghouan",
-  "Bizerte",
-  "Béja",
-  "Jendouba",
-  "Le Kef",
-  "Siliana",
-  "Sousse",
-  "Monastir",
-  "Mahdia",
-  "Sfax",
-  "Kairouan",
-  "Kasserine",
-  "Sidi Bouzid",
-  "Gabès",
-  "Medenine",
-  "Tataouine",
-  "Gafsa",
-  "Tozeur",
-  "Kebili",
-];
+import { REGIONS as regions } from "@/constants/regions";
 
 interface SearchFiltersProps {
   onFilterChange: (filters: any) => void;

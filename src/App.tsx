@@ -10,6 +10,8 @@ import Index from "./pages/Index";
 import Experience from "./pages/Experience";
 import Auth from "./pages/Auth";
 import Search from "./pages/Search";
+import Jobs from "./pages/Jobs";
+import JobDetail from "./pages/JobDetail";
 import OwnerProfile from "./pages/OwnerProfile";
 import OwnerMyProfile from "./pages/OwnerMyProfile";
 import OwnerOliveTrees from "./pages/OwnerOliveTrees";
@@ -43,6 +45,8 @@ function App() {
               <Route path="/experience" element={<Experience />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/search" element={<Search />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/owner-profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
               <Route path="/owner-my-profile" element={<ProtectedRoute><OwnerMyProfile /></ProtectedRoute>} />
               <Route path="/owner-olive-trees" element={<ProtectedRoute><OwnerOliveTrees /></ProtectedRoute>} />
