@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import NotificationBadge from "@/components/messages/NotificationBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,7 @@ const Navbar = () => {
           </DropdownMenu>
 
           {/* Auth Section */}
+          {user && <NotificationBadge />}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

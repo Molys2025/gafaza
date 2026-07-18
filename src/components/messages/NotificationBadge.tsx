@@ -1,6 +1,6 @@
-
-import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Bell, MessageSquare, Briefcase, Star, CheckCircle, ClipboardCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,72 +11,90 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  getMyNotifications,
+  markAsRead,
+  markAllAsRead,
+  subscribeToNotifications,
+  type AppNotification,
+} from "@/services/notificationService";
 
-interface Notification {
-  id: string;
-  type: "newMessage" | "messageRead" | "mention";
-  title: string;
-  description: string;
-  timestamp: string;
-  read: boolean;
-}
+const ICONS: Record<string, JSX.Element> = {
+  new_message: <MessageSquare className="h-4 w-4" />,
+  application_received: <Briefcase className="h-4 w-4" />,
+  application_status: <CheckCircle className="h-4 w-4" />,
+  mission_to_rate: <ClipboardCheck className="h-4 w-4" />,
+  rating_received: <Star className="h-4 w-4" />,
+};
 
-// Mock notifications
-const mockNotifications: Notification[] = [
-  {
-    id: "n1",
-    type: "newMessage",
-    title: "Nouveau message",
-    description: "Ahmed Ben Ali vous a envoyé un message",
-    timestamp: "Il y a 5 min",
-    read: false,
-  },
-  {
-    id: "n2",
-    type: "mention",
-    title: "Mention",
-    description: "Fatima vous a mentionné dans une conversation",
-    timestamp: "Il y a 1 heure",
-    read: false,
-  },
-  {
-    id: "n3",
-    type: "messageRead",
-    title: "Message lu",
-    description: "Mohamed a lu votre message",
-    timestamp: "Il y a 3 heures",
-    read: true,
-  },
-];
+const timeAgo = (iso: string): string => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "à l'instant";
+  if (m < 60) return `il y a ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `il y a ${h} h`;
+  const d = Math.floor(h / 24);
+  return `il y a ${d} j`;
+};
 
 const NotificationBadge = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const markAsRead = (id: string) => {
-    setNotifications(
-      notifications.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+  const load = useCallback(async () => {
+    if (!user) return;
+    try {
+      setNotifications(await getMyNotifications(user.id));
+    } catch {
+      /* silent: the badge must never break the navbar */
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+    load();
+    const channel = subscribeToNotifications(user.id, (n) => {
+      setNotifications((prev) => [n, ...prev].slice(0, 30));
+    });
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user, load]);
+
+  const handleClick = async (n: AppNotification) => {
+    if (!n.is_read) {
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)));
+      await markAsRead(n.id);
+    }
+    setIsOpen(false);
+    if (n.link) navigate(n.link);
   };
 
-  const markAllAsRead = () => {
-    setNotifications(
-      notifications.map(notif => ({ ...notif, read: true }))
-    );
+  const handleMarkAll = async () => {
+    if (!user) return;
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    await markAllAsRead(user.id);
   };
+
+  if (!user) return null;
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative">
+        <Button variant="ghost" className="relative" aria-label="Notifications">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge 
-              className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500" 
+            <Badge
+              className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500"
               variant="destructive"
             >
               {unreadCount}
@@ -88,11 +106,11 @@ const NotificationBadge = () => {
         <DropdownMenuLabel className="flex justify-between items-center">
           <span>Notifications</span>
           {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="h-auto py-1 px-2 text-xs"
-              onClick={markAllAsRead}
+              onClick={handleMarkAll}
             >
               Tout marquer comme lu
             </Button>
@@ -100,28 +118,24 @@ const NotificationBadge = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.length === 0 ? (
-          <div className="py-4 text-center text-gray-500">
-            Aucune notification
-          </div>
+          <div className="py-6 text-center text-gray-500 text-sm">Aucune notification</div>
         ) : (
-          notifications.map((notification) => (
+          notifications.map((n) => (
             <DropdownMenuItem
-              key={notification.id}
-              className={`p-3 cursor-pointer ${notification.read ? 'opacity-70' : 'font-medium'}`}
-              onClick={() => markAsRead(notification.id)}
+              key={n.id}
+              className={`p-3 cursor-pointer ${n.is_read ? "opacity-70" : "font-medium"}`}
+              onClick={() => handleClick(n)}
             >
-              <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-full ${getNotificationIconBg(notification.type)}`}>
-                  {getNotificationIcon(notification.type)}
+              <div className="flex items-start space-x-3 w-full">
+                <div className="p-2 rounded-full bg-olive/10 text-olive shrink-0">
+                  {ICONS[n.type] ?? <Bell className="h-4 w-4" />}
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium">{notification.title}</div>
-                  <div className="text-sm text-gray-500">{notification.description}</div>
-                  <div className="text-xs text-gray-400 mt-1">{notification.timestamp}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm">{n.title}</div>
+                  {n.body && <div className="text-xs text-gray-500 truncate">{n.body}</div>}
+                  <div className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</div>
                 </div>
-                {!notification.read && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
-                )}
+                {!n.is_read && <div className="w-2 h-2 bg-olive rounded-full mt-1 shrink-0" />}
               </div>
             </DropdownMenuItem>
           ))
@@ -130,51 +144,5 @@ const NotificationBadge = () => {
     </DropdownMenu>
   );
 };
-
-// Helper functions for notification icons
-function getNotificationIconBg(type: string): string {
-  switch (type) {
-    case "newMessage":
-      return "bg-blue-100 text-blue-500";
-    case "messageRead":
-      return "bg-green-100 text-green-500";
-    case "mention":
-      return "bg-purple-100 text-purple-500";
-    default:
-      return "bg-gray-100 text-gray-500";
-  }
-}
-
-function getNotificationIcon(type: string) {
-  switch (type) {
-    case "newMessage":
-      return <MessageIcon />;
-    case "messageRead":
-      return <ReadIcon />;
-    case "mention":
-      return <MentionIcon />;
-    default:
-      return <Bell className="h-4 w-4" />;
-  }
-}
-
-// Simple icon components
-const MessageIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-  </svg>
-);
-
-const ReadIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const MentionIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-  </svg>
-);
 
 export default NotificationBadge;

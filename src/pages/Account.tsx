@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import DataPrivacySection from "@/components/account/DataPrivacySection";
+import NotificationPreferences from "@/components/account/NotificationPreferences";
 
 const ROLE_LABELS: Record<string, string> = {
   job_seeker: "Cueilleur",
@@ -33,6 +34,8 @@ const Account = () => {
           )}
         </dl>
       </div>
+
+      <NotificationPreferences />
 
       <DataPrivacySection />
     </div>
