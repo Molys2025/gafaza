@@ -53,7 +53,9 @@ const UserManagement = () => {
 
   const { data: harvesters = [], isLoading: harvestersLoading } = useQuery({
     queryKey: ['harvesters'],
-    queryFn: getAllHarvesters,
+    // Wrapped: react-query calls queryFn with its own context object, which is
+    // not the { limit, offset } options getAllHarvesters now expects.
+    queryFn: () => getAllHarvesters(),
   });
 
   // Combinaison des données avec interface unifiée
