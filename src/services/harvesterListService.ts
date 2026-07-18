@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface HarvesterProfile {
   id: string;
@@ -20,7 +21,7 @@ export interface HarvesterProfile {
 }
 
 export const getAllHarvesters = async (): Promise<HarvesterProfile[]> => {
-  console.log('Fetching all harvesters...');
+  logger.debug('Fetching all harvesters...');
   
   const { data, error } = await supabase
     .from('job_seekers')
@@ -28,11 +29,11 @@ export const getAllHarvesters = async (): Promise<HarvesterProfile[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching harvesters:', error);
+    logger.error('Error fetching harvesters:', error);
     throw new Error(`Erreur lors de la récupération des cueilleurs: ${error.message}`);
   }
 
-  console.log('Harvesters fetched:', data?.length || 0);
+  logger.debug('Harvesters fetched', { count: data?.length || 0 });
   return data || [];
 };
 
@@ -41,7 +42,7 @@ export const searchHarvesters = async (searchTerm: string, filters?: {
   experience?: string;
   availability?: string;
 }): Promise<HarvesterProfile[]> => {
-  console.log('Searching harvesters with term:', searchTerm, 'and filters:', filters);
+  logger.debug('Searching harvesters', { searchTerm, filters });
   
   let query = supabase
     .from('job_seekers')
@@ -77,7 +78,7 @@ export const searchHarvesters = async (searchTerm: string, filters?: {
   const { data, error } = await query;
 
   if (error) {
-    console.error('Error searching harvesters:', error);
+    logger.error('Error searching harvesters:', error);
     throw new Error(`Erreur lors de la recherche: ${error.message}`);
   }
 
@@ -85,7 +86,7 @@ export const searchHarvesters = async (searchTerm: string, filters?: {
 };
 
 export const getHarvesterById = async (id: string): Promise<HarvesterProfile | null> => {
-  console.log('Fetching harvester by id:', id);
+  logger.debug('Fetching harvester by id', { id });
   
   const { data, error } = await supabase
     .from('job_seekers')
@@ -94,7 +95,7 @@ export const getHarvesterById = async (id: string): Promise<HarvesterProfile | n
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching harvester:', error);
+    logger.error('Error fetching harvester:', error);
     throw new Error(`Erreur lors de la récupération du cueilleur: ${error.message}`);
   }
 

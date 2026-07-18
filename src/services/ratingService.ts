@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/integrations/supabase/types';
 
 export type RatingRow = Database['public']['Tables']['ratings']['Row'];
@@ -53,7 +54,7 @@ export const createRating = async (
     .single();
 
   if (error) {
-    console.error('Error creating rating:', error);
+    logger.error('Error creating rating:', error);
 
     if (error.code === '23505') {
       throw new Error('Vous avez déjà évalué cette mission.');
@@ -80,7 +81,7 @@ export const getRatingsFor = async (ratedId: string): Promise<RatingRow[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching ratings:', error);
+    logger.error('Error fetching ratings:', error);
     throw new Error(`Erreur lors de la récupération des évaluations: ${error.message}`);
   }
 
@@ -100,7 +101,7 @@ export const getMyRatingForApplication = async (
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching own rating:', error);
+    logger.error('Error fetching own rating:', error);
     return null;
   }
 

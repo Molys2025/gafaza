@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/integrations/supabase/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -33,7 +34,7 @@ export const getOrCreateConversation = async (
   });
 
   if (error) {
-    console.error('Error creating conversation:', error);
+    logger.error('Error creating conversation:', error);
     throw new Error(`Erreur lors de l'ouverture de la conversation: ${error.message}`);
   }
 
@@ -49,7 +50,7 @@ export const getMyConversations = async (userId: string): Promise<ConversationSu
     .order('last_message_at', { ascending: false, nullsFirst: false });
 
   if (error) {
-    console.error('Error fetching conversations:', error);
+    logger.error('Error fetching conversations:', error);
     throw new Error(`Erreur lors de la récupération des conversations: ${error.message}`);
   }
 
@@ -126,7 +127,7 @@ export const getMessages = async (conversationId: string): Promise<MessageRow[]>
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.error('Error fetching messages:', error);
+    logger.error('Error fetching messages:', error);
     throw new Error(`Erreur lors de la récupération des messages: ${error.message}`);
   }
 
@@ -155,7 +156,7 @@ export const sendMessage = async (
     .single();
 
   if (error) {
-    console.error('Error sending message:', error);
+    logger.error('Error sending message:', error);
     throw new Error(`Erreur lors de l'envoi du message: ${error.message}`);
   }
 
@@ -176,7 +177,7 @@ export const markConversationAsRead = async (
 
   // Non-blocking: failing to flag messages as read must not break the chat.
   if (error) {
-    console.error('Error marking conversation as read:', error);
+    logger.error('Error marking conversation as read:', error);
   }
 };
 

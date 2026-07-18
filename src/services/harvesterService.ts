@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 // Postgres rejects '' for date columns; empty form values must become null.
 const toDateOrNull = (value: string | null | undefined): string | null =>
@@ -20,7 +21,7 @@ export interface HarvesterData {
 }
 
 export const createHarvester = async (userId: string, data: HarvesterData) => {
-  console.log('Creating harvester profile for user:', userId, data);
+  logger.debug('Creating harvester profile', { userId });
   
   try {
     // public.users row is created by a DB trigger on sign-up.
@@ -37,7 +38,7 @@ export const createHarvester = async (userId: string, data: HarvesterData) => {
       .eq('id', userId);
 
     if (userError) {
-      console.error('Error updating user:', userError);
+      logger.error('Error updating user:', userError);
       throw userError;
     }
 
@@ -59,20 +60,20 @@ export const createHarvester = async (userId: string, data: HarvesterData) => {
       });
 
     if (harvesterError) {
-      console.error('Error creating harvester profile:', harvesterError);
+      logger.error('Error creating harvester profile:', harvesterError);
       throw harvesterError;
     }
 
-    console.log('Harvester profile created successfully');
+    logger.debug('Harvester profile created successfully');
     return { success: true };
   } catch (error) {
-    console.error('Error in createHarvester:', error);
+    logger.error('Error in createHarvester:', error);
     throw error;
   }
 };
 
 export const uploadProfilePicture = async (userId: string, file: File) => {
-  console.log('Uploading profile picture for user:', userId);
+  logger.debug('Uploading profile picture', { userId });
   
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/profile.${fileExt}`;
@@ -84,7 +85,7 @@ export const uploadProfilePicture = async (userId: string, file: File) => {
     });
 
   if (uploadError) {
-    console.error('Error uploading profile picture:', uploadError);
+    logger.error('Error uploading profile picture:', uploadError);
     throw new Error(`Erreur lors du téléchargement de la photo: ${uploadError.message}`);
   }
 
@@ -100,7 +101,7 @@ export const uploadProfilePicture = async (userId: string, file: File) => {
     .eq('id', userId);
 
   if (updateError) {
-    console.error('Error updating profile picture URL:', updateError);
+    logger.error('Error updating profile picture URL:', updateError);
     throw new Error(`Erreur lors de la mise à jour de l'URL de la photo: ${updateError.message}`);
   }
 
@@ -111,15 +112,15 @@ export const uploadProfilePicture = async (userId: string, file: File) => {
     .eq('id', userId);
 
   if (jobSeekerUpdateError) {
-    console.error('Error updating job seeker profile picture:', jobSeekerUpdateError);
+    logger.error('Error updating job seeker profile picture:', jobSeekerUpdateError);
     // Don't throw here as the main upload succeeded
   }
 
-  console.log('Profile picture uploaded successfully');
+  logger.debug('Profile picture uploaded successfully');
 };
 
 export const uploadIdCard = async (userId: string, file: File) => {
-  console.log('Uploading ID card for user:', userId);
+  logger.debug('Uploading ID card', { userId });
   
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/id_card.${fileExt}`;
@@ -131,15 +132,15 @@ export const uploadIdCard = async (userId: string, file: File) => {
     });
 
   if (uploadError) {
-    console.error('Error uploading ID card:', uploadError);
+    logger.error('Error uploading ID card:', uploadError);
     throw new Error(`Erreur lors du téléchargement de la carte d'identité: ${uploadError.message}`);
   }
 
-  console.log('ID card uploaded successfully');
+  logger.debug('ID card uploaded successfully');
 };
 
 export const getHarvesterProfile = async (userId: string) => {
-  console.log('Getting harvester profile for user:', userId);
+  logger.debug('Getting harvester profile', { userId });
   
   const { data, error } = await supabase
     .from('job_seekers')
@@ -148,7 +149,7 @@ export const getHarvesterProfile = async (userId: string) => {
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-    console.error('Error getting harvester profile:', error);
+    logger.error('Error getting harvester profile:', error);
     throw new Error(`Erreur lors de la récupération du profil: ${error.message}`);
   }
 
@@ -156,7 +157,7 @@ export const getHarvesterProfile = async (userId: string) => {
 };
 
 export const updateHarvesterProfile = async (userId: string, updates: Partial<HarvesterData>) => {
-  console.log('Updating harvester profile for user:', userId);
+  logger.debug('Updating harvester profile', { userId });
   
   const { error } = await supabase
     .from('job_seekers')
@@ -176,9 +177,9 @@ export const updateHarvesterProfile = async (userId: string, updates: Partial<Ha
     .eq('id', userId);
 
   if (error) {
-    console.error('Error updating harvester profile:', error);
+    logger.error('Error updating harvester profile:', error);
     throw new Error(`Erreur lors de la mise à jour du profil: ${error.message}`);
   }
 
-  console.log('Harvester profile updated successfully');
+  logger.debug('Harvester profile updated successfully');
 };

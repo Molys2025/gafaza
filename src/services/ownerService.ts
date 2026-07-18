@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface OwnerData {
   fullName: string;
@@ -42,7 +43,7 @@ export const createOwner = async (
   data: OwnerData,
   extras?: OwnerPropertyExtras,
 ) => {
-  console.log('Creating owner profile for user:', userId);
+  logger.debug('Creating owner profile', { userId });
 
   // The public.users row is created by a DB trigger on auth.users insert.
   // We only update the mutable fields here (do NOT re-upsert / recreate it).
@@ -58,7 +59,7 @@ export const createOwner = async (
     .eq('id', userId);
 
   if (userError) {
-    console.error('Error updating user:', userError);
+    logger.error('Error updating user:', userError);
     throw new Error(`Erreur lors de la mise à jour du profil utilisateur: ${userError.message}`);
   }
 
@@ -85,15 +86,15 @@ export const createOwner = async (
     });
 
   if (ownerError) {
-    console.error('Error creating owner profile:', ownerError);
+    logger.error('Error creating owner profile:', ownerError);
     throw new Error(`Erreur lors de la création du profil propriétaire: ${ownerError.message}`);
   }
 
-  console.log('Owner profile created successfully');
+  logger.debug('Owner profile created successfully');
 };
 
 export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | null> => {
-  console.log('Getting owner profile for user:', userId);
+  logger.debug('Getting owner profile', { userId });
   
   const { data, error } = await supabase
     .from('work_providers')
@@ -102,7 +103,7 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('Error getting owner profile:', error);
+    logger.error('Error getting owner profile:', error);
     throw new Error(`Erreur lors de la récupération du profil: ${error.message}`);
   }
 
@@ -117,7 +118,7 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
     .maybeSingle();
 
   if (userError) {
-    console.error('Error getting owner user data:', userError);
+    logger.error('Error getting owner user data:', userError);
     throw new Error(`Erreur lors de la récupération du profil: ${userError.message}`);
   }
 
@@ -142,7 +143,7 @@ export const getOwnerProfile = async (userId: string): Promise<OwnerProfile | nu
 };
 
 export const updateOwnerProfile = async (userId: string, updates: Partial<OwnerData>) => {
-  console.log('Updating owner profile for user:', userId);
+  logger.debug('Updating owner profile', { userId });
   
   const { error } = await supabase
     .from('work_providers')
@@ -153,15 +154,15 @@ export const updateOwnerProfile = async (userId: string, updates: Partial<OwnerD
     .eq('id', userId);
 
   if (error) {
-    console.error('Error updating owner profile:', error);
+    logger.error('Error updating owner profile:', error);
     throw new Error(`Erreur lors de la mise à jour du profil: ${error.message}`);
   }
 
-  console.log('Owner profile updated successfully');
+  logger.debug('Owner profile updated successfully');
 };
 
 export const getAllOwners = async (): Promise<OwnerProfile[]> => {
-  console.log('Fetching all owners...');
+  logger.debug('Fetching all owners...');
   
   const { data, error } = await supabase
     .from('work_providers')
@@ -169,11 +170,11 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching owners:', error);
+    logger.error('Error fetching owners:', error);
     throw new Error(`Erreur lors de la récupération des propriétaires: ${error.message}`);
   }
 
-  console.log('Owners fetched:', data?.length || 0);
+  logger.debug('Owners fetched', { count: data?.length || 0 });
 
   const owners = data || [];
   if (owners.length === 0) return [];
@@ -186,7 +187,7 @@ export const getAllOwners = async (): Promise<OwnerProfile[]> => {
     .in('id', owners.map(o => o.id));
 
   if (usersError) {
-    console.error('Error fetching owner user data:', usersError);
+    logger.error('Error fetching owner user data:', usersError);
     throw new Error(`Erreur lors de la récupération des propriétaires: ${usersError.message}`);
   }
 

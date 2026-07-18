@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/integrations/supabase/types';
 
 export type JobRow = Database['public']['Tables']['jobs']['Row'];
@@ -64,7 +65,7 @@ export const createJob = async (workProviderId: string, input: CreateJobInput): 
     .single();
 
   if (error) {
-    console.error('Error creating job:', error);
+    logger.error('Error creating job:', error);
     throw new Error(`Erreur lors de la publication de l'annonce: ${error.message}`);
   }
 
@@ -95,7 +96,7 @@ export const getActiveJobs = async (filters?: {
   const { data, error } = await query.order('published_at', { ascending: false, nullsFirst: false });
 
   if (error) {
-    console.error('Error fetching jobs:', error);
+    logger.error('Error fetching jobs:', error);
     throw new Error(`Erreur lors de la récupération des annonces: ${error.message}`);
   }
 
@@ -110,7 +111,7 @@ export const getJobById = async (id: string): Promise<JobRow | null> => {
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116 = not found
-    console.error('Error fetching job:', error);
+    logger.error('Error fetching job:', error);
     throw new Error(`Erreur lors de la récupération de l'annonce: ${error.message}`);
   }
 
@@ -126,7 +127,7 @@ export const getMyJobs = async (workProviderId: string): Promise<JobRow[]> => {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching own jobs:', error);
+    logger.error('Error fetching own jobs:', error);
     throw new Error(`Erreur lors de la récupération de vos annonces: ${error.message}`);
   }
 
@@ -146,7 +147,7 @@ export const updateJobStatus = async (id: string, status: JobStatus): Promise<vo
     .eq('id', id);
 
   if (error) {
-    console.error('Error updating job status:', error);
+    logger.error('Error updating job status:', error);
     throw new Error(`Erreur lors de la mise à jour de l'annonce: ${error.message}`);
   }
 };
@@ -159,7 +160,7 @@ export const deleteDraftJob = async (id: string): Promise<void> => {
     .eq('id', id);
 
   if (error) {
-    console.error('Error deleting job:', error);
+    logger.error('Error deleting job:', error);
     throw new Error(`Erreur lors de la suppression de l'annonce: ${error.message}`);
   }
 };

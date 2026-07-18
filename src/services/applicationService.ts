@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/integrations/supabase/types';
 import type { JobRow } from './jobService';
 
@@ -46,7 +47,7 @@ export const applyToJob = async (
     .single();
 
   if (error) {
-    console.error('Error applying to job:', error);
+    logger.error('Error applying to job:', error);
 
     // 23505 = unique violation on applications_job_seeker_active_uniq
     if (error.code === '23505') {
@@ -76,7 +77,7 @@ export const getMyApplicationForJob = async (
     .maybeSingle();
 
   if (error) {
-    console.error('Error checking existing application:', error);
+    logger.error('Error checking existing application:', error);
     throw new Error(`Erreur lors de la vérification de votre candidature: ${error.message}`);
   }
 
@@ -92,7 +93,7 @@ export const getMyApplications = async (jobSeekerId: string): Promise<Applicatio
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching applications:', error);
+    logger.error('Error fetching applications:', error);
     throw new Error(`Erreur lors de la récupération de vos candidatures: ${error.message}`);
   }
 
@@ -108,7 +109,7 @@ export const getMyApplications = async (jobSeekerId: string): Promise<Applicatio
     .in('id', jobIds);
 
   if (jobsError) {
-    console.error('Error fetching jobs for applications:', jobsError);
+    logger.error('Error fetching jobs for applications:', jobsError);
     throw new Error(`Erreur lors de la récupération des annonces: ${jobsError.message}`);
   }
 
@@ -129,7 +130,7 @@ export const getApplicationsForJob = async (jobId: string): Promise<ApplicationR
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching applications for job:', error);
+    logger.error('Error fetching applications for job:', error);
     throw new Error(`Erreur lors de la récupération des candidatures: ${error.message}`);
   }
 
@@ -152,7 +153,7 @@ export const respondToApplication = async (
     .eq('id', applicationId);
 
   if (error) {
-    console.error('Error responding to application:', error);
+    logger.error('Error responding to application:', error);
     throw new Error(`Erreur lors de la réponse à la candidature: ${error.message}`);
   }
 };
@@ -168,7 +169,7 @@ export const completeApplication = async (applicationId: string): Promise<void> 
   });
 
   if (error) {
-    console.error('Error completing application:', error);
+    logger.error('Error completing application:', error);
 
     if (error.message?.includes('only the job owner')) {
       throw new Error("Seul le propriétaire de l'annonce peut clôturer cette mission.");
@@ -191,7 +192,7 @@ export const withdrawApplication = async (applicationId: string): Promise<void> 
     .eq('id', applicationId);
 
   if (error) {
-    console.error('Error withdrawing application:', error);
+    logger.error('Error withdrawing application:', error);
     throw new Error(`Erreur lors du retrait de la candidature: ${error.message}`);
   }
 };
