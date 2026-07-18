@@ -41,6 +41,7 @@ const Evaluation = lazy(() => import("./pages/Evaluation"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Account = lazy(() => import("./pages/Account"));
 const OwnerPublicProfile = lazy(() => import("./pages/OwnerPublicProfile"));
+const OwnerJobs = lazy(() => import("./pages/OwnerJobs"));
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ function App() {
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/my-applications" element={<ProtectedRoute requiredRole="job_seeker"><MyApplications /></ProtectedRoute>} />
+              <Route path="/owner-jobs" element={<ProtectedRoute requiredRole="work_provider"><OwnerJobs /></ProtectedRoute>} />
               <Route path="/owner-jobs/:id/applications" element={<ProtectedRoute requiredRole="work_provider"><OwnerJobApplications /></ProtectedRoute>} />
               <Route path="/owner-profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
               <Route path="/owner-my-profile" element={<ProtectedRoute><OwnerMyProfile /></ProtectedRoute>} />
