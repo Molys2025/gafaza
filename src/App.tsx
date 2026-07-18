@@ -1,39 +1,52 @@
 
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { Loader2 } from "lucide-react";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Index from "./pages/Index";
-import Experience from "./pages/Experience";
-import Auth from "./pages/Auth";
-import Search from "./pages/Search";
-import Jobs from "./pages/Jobs";
-import JobDetail from "./pages/JobDetail";
-import MyApplications from "./pages/MyApplications";
-import OwnerJobApplications from "./pages/OwnerJobApplications";
-import OwnerProfile from "./pages/OwnerProfile";
-import OwnerMyProfile from "./pages/OwnerMyProfile";
-import OwnerOliveTrees from "./pages/OwnerOliveTrees";
-import OwnerOliveTreeDetails from "./pages/OwnerOliveTreeDetails";
-import OwnerEditOliveGrove from "./pages/OwnerEditOliveGrove";
-import OwnerPlanHarvest from "./pages/OwnerPlanHarvest";
-import OwnerAddOliveGrove from "./pages/OwnerAddOliveGrove";
-import OwnerFindHarvesters from "./pages/OwnerFindHarvesters";
-import OwnerPayments from "./pages/OwnerPayments";
-import HarvesterProfile from "./pages/HarvesterProfile";
-import HarvesterPublicProfile from "./pages/HarvesterPublicProfile";
-import HarvesterDashboard from "./pages/HarvesterDashboard";
-import Messages from "./pages/Messages";
-import Payment from "./pages/Payment";
-import Evaluation from "./pages/Evaluation";
-import Admin from "./pages/Admin";
 import LanguageSelector from "./components/LanguageSelector";
 import "./i18n/config";
 
+// The landing and auth pages are on the critical path, so they stay in the
+// main bundle. Everything else is code-split: mapbox, recharts and the whole
+// admin back-office used to ship to every first-time visitor.
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+
+const Experience = lazy(() => import("./pages/Experience"));
+const Search = lazy(() => import("./pages/Search"));
+const Jobs = lazy(() => import("./pages/Jobs"));
+const JobDetail = lazy(() => import("./pages/JobDetail"));
+const MyApplications = lazy(() => import("./pages/MyApplications"));
+const OwnerJobApplications = lazy(() => import("./pages/OwnerJobApplications"));
+const OwnerProfile = lazy(() => import("./pages/OwnerProfile"));
+const OwnerMyProfile = lazy(() => import("./pages/OwnerMyProfile"));
+const OwnerOliveTrees = lazy(() => import("./pages/OwnerOliveTrees"));
+const OwnerOliveTreeDetails = lazy(() => import("./pages/OwnerOliveTreeDetails"));
+const OwnerEditOliveGrove = lazy(() => import("./pages/OwnerEditOliveGrove"));
+const OwnerPlanHarvest = lazy(() => import("./pages/OwnerPlanHarvest"));
+const OwnerAddOliveGrove = lazy(() => import("./pages/OwnerAddOliveGrove"));
+const OwnerFindHarvesters = lazy(() => import("./pages/OwnerFindHarvesters"));
+const OwnerPayments = lazy(() => import("./pages/OwnerPayments"));
+const HarvesterProfile = lazy(() => import("./pages/HarvesterProfile"));
+const HarvesterPublicProfile = lazy(() => import("./pages/HarvesterPublicProfile"));
+const HarvesterDashboard = lazy(() => import("./pages/HarvesterDashboard"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Payment = lazy(() => import("./pages/Payment"));
+const Evaluation = lazy(() => import("./pages/Evaluation"));
+const Admin = lazy(() => import("./pages/Admin"));
+
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div className="min-h-[60vh] flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-olive" />
+  </div>
+);
 
 function App() {
   return (
@@ -42,6 +55,7 @@ function App() {
         <TooltipProvider>
           <BrowserRouter>
             <Navbar />
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/experience" element={<Experience />} />
@@ -68,6 +82,7 @@ function App() {
               <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requiredRole="admin" requiresProfile={false}><Admin /></ProtectedRoute>} />
             </Routes>
+            </Suspense>
             <LanguageSelector />
             <Toaster />
           </BrowserRouter>
