@@ -20,24 +20,27 @@ export class MessageModerator {
     /\b[A-Za-z0-9._%+-]+\s*@\s*[A-Za-z0-9.-]+\s*\.\s*[A-Z|a-z]{2,}\b/g, // Avec espaces
   ];
 
+  // Ces patterns sont testés avec .test() : pas de drapeau /g, sinon
+  // lastIndex est conservé d'un appel à l'autre sur ces instances
+  // partagées et un message sur deux passerait au travers.
   private externalPlatforms = [
-    /whatsapp/gi,
-    /messenger/gi,
-    /telegram/gi,
-    /discord/gi,
-    /skype/gi,
-    /viber/gi,
-    /signal/gi,
+    /whatsapp/i,
+    /messenger/i,
+    /telegram/i,
+    /discord/i,
+    /skype/i,
+    /viber/i,
+    /signal/i,
   ];
 
   private bypassAttempts = [
-    /contact.*moi.*directement/gi,
-    /appelle.*moi/gi,
-    /écris.*moi/gi,
-    /mon.*numéro/gi,
-    /outside.*platform/gi,
-    /en.*dehors/gi,
-    /directement.*sans/gi,
+    /contact.*moi.*directement/i,
+    /appelle.*moi/i,
+    /écris.*moi/i,
+    /mon.*numéro/i,
+    /outside.*platform/i,
+    /en.*dehors/i,
+    /directement.*sans/i,
   ];
 
   moderateMessage(content: string, applicationStatus?: string): ModerationResult {

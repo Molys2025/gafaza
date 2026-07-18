@@ -20,4 +20,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/services/**", "src/utils/**"],
+    },
+  },
 }));
