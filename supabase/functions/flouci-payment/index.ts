@@ -1,11 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders, guardRequest } from "../_shared/guard.ts"
 
 interface FlouciPaymentRequest {
   amount: number; // in millimes
@@ -17,6 +13,11 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+
+  // Initiating a payment must never be reachable with the public anon key
+  // alone: signed-in users only, and a cap against replayed attempts.
+  const guard = await guardRequest(req, { limit: 10, windowMs: 5 * 60 * 1000 })
+  if ('response' in guard) return guard.response
 
   try {
     const { amount, phoneNumber, description }: FlouciPaymentRequest = await req.json()

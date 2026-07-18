@@ -1,16 +1,17 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, guardRequest } from "../_shared/guard.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  // Video/audio transcription is the costliest call in the app: signed-in
+  // users only, and a tight cap since onboarding runs it a handful of times.
+  const guard = await guardRequest(req, { limit: 5, windowMs: 10 * 60 * 1000 });
+  if ('response' in guard) return guard.response;
 
   try {
     const { videoData, userType, mediaType = 'video' } = await req.json();

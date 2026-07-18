@@ -1,16 +1,17 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders, guardRequest } from "../_shared/guard.ts"
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+
+  // Payment ids are guessable enough that status lookups must be
+  // authenticated rather than open to anyone with the anon key.
+  const guard = await guardRequest(req, { limit: 30, windowMs: 5 * 60 * 1000 })
+  if ('response' in guard) return guard.response
 
   try {
     const url = new URL(req.url)

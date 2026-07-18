@@ -1,16 +1,18 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, guardRequest } from "../_shared/guard.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  // This endpoint spends OpenAI credits, so it needs a real signed-in user
+  // and a per-user cap: 20 calls per 5 minutes is well above normal
+  // conversational use during onboarding.
+  const guard = await guardRequest(req, { limit: 20, windowMs: 5 * 60 * 1000 });
+  if ('response' in guard) return guard.response;
 
   try {
     const { message, currentProfile, userType, conversationHistory } = await req.json();
