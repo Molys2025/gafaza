@@ -17,9 +17,13 @@ import { getJobById, type JobRow } from "@/services/jobService";
 import {
   getApplicationsForJob,
   respondToApplication,
+  completeApplication,
   type ApplicationRow,
 } from "@/services/applicationService";
 import { getHarvesterById, type HarvesterProfile } from "@/services/harvesterListService";
+import { getMyRatingForApplication } from "@/services/ratingService";
+import { useAuth } from "@/hooks/useAuth";
+import RatingDialog from "@/components/ratings/RatingDialog";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
@@ -54,6 +58,9 @@ const OwnerJobApplications = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  const [ratedApplicationIds, setRatedApplicationIds] = useState<Set<string>>(new Set());
+  const [ratingTarget, setRatingTarget] = useState<ApplicationRow | null>(null);
+  const { user } = useAuth();
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -78,17 +85,49 @@ const OwnerJobApplications = () => {
           profiles.filter((p): p is HarvesterProfile => Boolean(p)).map(p => [p.id, p]),
         ),
       );
+
+      // Which completed missions the owner has already reviewed.
+      if (user) {
+        const completed = applicationsData.filter(a => a.status === 'completed');
+        const existing = await Promise.all(
+          completed.map(a =>
+            getMyRatingForApplication(user.id, a.id).then(r => (r ? a.id : null)),
+          ),
+        );
+        setRatedApplicationIds(new Set(existing.filter(Boolean) as string[]));
+      }
     } catch (error: any) {
       console.error("Error loading job applications:", error);
       setLoadError(error?.message || "Erreur lors du chargement des candidatures");
     } finally {
       setIsLoading(false);
     }
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleComplete = async (applicationId: string) => {
+    setRespondingId(applicationId);
+    try {
+      await completeApplication(applicationId);
+      toast({
+        title: "Mission clôturée",
+        description: "Vous pouvez maintenant évaluer le cueilleur.",
+      });
+      await load();
+    } catch (error: any) {
+      console.error("Error completing application:", error);
+      toast({
+        title: "Erreur",
+        description: error?.message || "La mission n'a pas pu être clôturée.",
+        variant: "destructive",
+      });
+    } finally {
+      setRespondingId(null);
+    }
+  };
 
   const handleRespond = async (
     applicationId: string,
@@ -274,16 +313,68 @@ const OwnerJobApplications = () => {
                       )}
                     </div>
                   </div>
-                ) : application.provider_response ? (
-                  <div className="mt-3 p-3 bg-olive/5 rounded text-sm text-gray-700">
-                    <span className="font-medium">Votre réponse : </span>
-                    {application.provider_response}
-                  </div>
-                ) : null}
+                ) : (
+                  <>
+                    {application.provider_response && (
+                      <div className="mt-3 p-3 bg-olive/5 rounded text-sm text-gray-700">
+                        <span className="font-medium">Votre réponse : </span>
+                        {application.provider_response}
+                      </div>
+                    )}
+
+                    {status === 'accepted' && (
+                      <div className="mt-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleComplete(application.id)}
+                          disabled={respondingId === application.id}
+                        >
+                          {respondingId === application.id && (
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          )}
+                          Clôturer la mission
+                        </Button>
+                      </div>
+                    )}
+
+                    {status === 'completed' && (
+                      <div className="mt-4">
+                        {ratedApplicationIds.has(application.id) ? (
+                          <span className="text-sm text-gray-500">
+                            Vous avez évalué ce cueilleur.
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="bg-olive hover:bg-olive-dark"
+                            onClick={() => setRatingTarget(application)}
+                          >
+                            Évaluer le cueilleur
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             );
           })}
         </div>
+      )}
+
+      {user && ratingTarget?.job_seeker_id && (
+        <RatingDialog
+          open={Boolean(ratingTarget)}
+          onOpenChange={(open) => !open && setRatingTarget(null)}
+          raterId={user.id}
+          ratedId={ratingTarget.job_seeker_id}
+          ratedName={seekers[ratingTarget.job_seeker_id]?.full_name ?? "ce cueilleur"}
+          applicationId={ratingTarget.id}
+          jobId={job.id}
+          ratingType="job_seeker"
+          onRated={load}
+        />
       )}
     </div>
   );

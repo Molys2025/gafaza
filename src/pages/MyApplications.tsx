@@ -16,6 +16,8 @@ import {
   withdrawApplication,
   type ApplicationWithJob,
 } from "@/services/applicationService";
+import { getMyRatingForApplication } from "@/services/ratingService";
+import RatingDialog from "@/components/ratings/RatingDialog";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
@@ -46,13 +48,23 @@ const MyApplications = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const [ratedApplicationIds, setRatedApplicationIds] = useState<Set<string>>(new Set());
+  const [ratingTarget, setRatingTarget] = useState<ApplicationWithJob | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
     setLoadError(null);
     try {
-      setApplications(await getMyApplications(user.id));
+      const data = await getMyApplications(user.id);
+      setApplications(data);
+
+      // Completed missions the job seeker has already reviewed.
+      const completed = data.filter(a => a.status === 'completed');
+      const existing = await Promise.all(
+        completed.map(a => getMyRatingForApplication(user.id, a.id).then(r => (r ? a.id : null))),
+      );
+      setRatedApplicationIds(new Set(existing.filter(Boolean) as string[]));
     } catch (error: any) {
       console.error("Error loading applications:", error);
       setLoadError(error?.message || "Erreur lors du chargement de vos candidatures");
@@ -181,12 +193,41 @@ const MyApplications = () => {
                         Retirer
                       </Button>
                     )}
+                    {status === 'completed' && job?.work_provider_id && (
+                      ratedApplicationIds.has(application.id) ? (
+                        <span className="text-sm text-gray-500 self-center">
+                          Mission évaluée
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="bg-olive hover:bg-olive-dark"
+                          onClick={() => setRatingTarget(application)}
+                        >
+                          Évaluer le propriétaire
+                        </Button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {user && ratingTarget?.job?.work_provider_id && (
+        <RatingDialog
+          open={Boolean(ratingTarget)}
+          onOpenChange={(open) => !open && setRatingTarget(null)}
+          raterId={user.id}
+          ratedId={ratingTarget.job.work_provider_id}
+          ratedName="le propriétaire"
+          applicationId={ratingTarget.id}
+          jobId={ratingTarget.job.id}
+          ratingType="work_provider"
+          onRated={load}
+        />
       )}
     </div>
   );

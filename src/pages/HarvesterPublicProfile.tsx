@@ -1,10 +1,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Loader2, MapPin, User, ThumbsUp, Calendar, ArrowLeft, MessageCircle } from "lucide-react";
+import { Loader2, MapPin, User, ThumbsUp, Calendar, ArrowLeft, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getHarvesterById, type HarvesterProfile } from "@/services/harvesterListService";
+import { getRatingsFor, getOverallScore, type RatingRow } from "@/services/ratingService";
+import { cn } from "@/lib/utils";
 
 const formatDate = (value?: string | null) => {
   if (!value) return null;
@@ -16,6 +18,7 @@ const HarvesterPublicProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<HarvesterProfile | null>(null);
+  const [ratings, setRatings] = useState<RatingRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -30,6 +33,11 @@ const HarvesterPublicProfile = () => {
         setLoadError(error?.message || "Erreur lors du chargement du profil");
       })
       .finally(() => setIsLoading(false));
+
+    // Reviews are secondary: a failure here must not blank the profile.
+    getRatingsFor(id)
+      .then(setRatings)
+      .catch((error) => console.error("Error loading ratings:", error));
   }, [id]);
 
   if (isLoading) {
@@ -144,6 +152,59 @@ const HarvesterPublicProfile = () => {
             <MessageCircle className="mr-2 h-4 w-4" /> Contacter
           </Button>
         </div>
+      </div>
+
+      {/* Avis reçus */}
+      <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+        <h2 className="font-semibold text-olive-dark mb-4">
+          Avis {ratings.length > 0 && `(${ratings.length})`}
+        </h2>
+
+        {ratings.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            Aucun avis pour le moment. Les avis sont publiés après une mission terminée.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {ratings.map((rating) => {
+              const overall = getOverallScore(rating);
+
+              return (
+                <div key={rating.id} className="border-b last:border-0 pb-4 last:pb-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <Star
+                          key={score}
+                          className={cn(
+                            "h-4 w-4",
+                            overall != null && score <= overall
+                              ? "fill-olive text-olive"
+                              : "text-gray-300",
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {formatDate(rating.created_at)}
+                    </span>
+                  </div>
+
+                  {rating.comment && (
+                    <p className="text-gray-700 mt-2 whitespace-pre-line">{rating.comment}</p>
+                  )}
+
+                  {rating.response && (
+                    <div className="mt-2 ml-4 p-3 bg-gray-50 rounded text-sm text-gray-700">
+                      <span className="font-medium">Réponse : </span>
+                      {rating.response}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
