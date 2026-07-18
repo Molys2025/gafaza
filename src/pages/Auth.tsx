@@ -144,23 +144,30 @@ const Auth = () => {
                 >
                   <label
                     htmlFor="role-harvester"
-                    className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${
+                    className={`flex items-start gap-2 rounded-md border p-3 cursor-pointer ${
                       role === 'job_seeker' ? 'border-olive bg-olive/5' : 'border-input'
                     }`}
                   >
-                    <RadioGroupItem value="job_seeker" id="role-harvester" />
-                    <span className="text-sm">Cueilleur</span>
+                    <RadioGroupItem value="job_seeker" id="role-harvester" className="mt-0.5" />
+                    <span className="flex flex-col">
+                      <span className="text-sm font-medium">Cueilleur</span>
+                      <span className="text-xs text-muted-foreground">Je cherche du travail de récolte et je candidate aux annonces.</span>
+                    </span>
                   </label>
                   <label
                     htmlFor="role-owner"
-                    className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${
+                    className={`flex items-start gap-2 rounded-md border p-3 cursor-pointer ${
                       role === 'work_provider' ? 'border-olive bg-olive/5' : 'border-input'
                     }`}
                   >
-                    <RadioGroupItem value="work_provider" id="role-owner" />
-                    <span className="text-sm">Propriétaire</span>
+                    <RadioGroupItem value="work_provider" id="role-owner" className="mt-0.5" />
+                    <span className="flex flex-col">
+                      <span className="text-sm font-medium">Propriétaire</span>
+                      <span className="text-xs text-muted-foreground">Je publie des annonces et je recrute des cueilleurs.</span>
+                    </span>
                   </label>
                 </RadioGroup>
+                <p className="text-xs text-muted-foreground">Ce choix définit votre espace ; vous pourrez le modifier plus tard.</p>
               </div>
             )}
 

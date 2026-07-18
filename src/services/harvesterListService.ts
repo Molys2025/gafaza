@@ -20,13 +20,19 @@ export interface HarvesterProfile {
   location?: string;
 }
 
-export const getAllHarvesters = async (): Promise<HarvesterProfile[]> => {
-  logger.debug('Fetching all harvesters...');
-  
+/** Default page size. Prevents an unbounded `select('*')` that would grow with the table. */
+export const HARVESTERS_PAGE_SIZE = 50;
+
+export const getAllHarvesters = async (
+  { limit = HARVESTERS_PAGE_SIZE, offset = 0 }: { limit?: number; offset?: number } = {}
+): Promise<HarvesterProfile[]> => {
+  logger.debug('Fetching harvesters...', { limit, offset });
+
   const { data, error } = await supabase
     .from('job_seekers')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (error) {
     logger.error('Error fetching harvesters:', error);
@@ -73,7 +79,9 @@ export const searchHarvesters = async (searchTerm: string, filters?: {
     }
   }
 
-  query = query.order('created_at', { ascending: false });
+  query = query
+    .order('created_at', { ascending: false })
+    .range(0, HARVESTERS_PAGE_SIZE - 1);
 
   const { data, error } = await query;
 
