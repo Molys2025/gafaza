@@ -39,6 +39,7 @@ const Messages = lazy(() => import("./pages/Messages"));
 const Payment = lazy(() => import("./pages/Payment"));
 const Evaluation = lazy(() => import("./pages/Evaluation"));
 const Admin = lazy(() => import("./pages/Admin"));
+const Account = lazy(() => import("./pages/Account"));
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ function App() {
               <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/evaluation" element={<ProtectedRoute><Evaluation /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requiredRole="admin" requiresProfile={false}><Admin /></ProtectedRoute>} />
+              <Route path="/account" element={<ProtectedRoute requiresProfile={false}><Account /></ProtectedRoute>} />
             </Routes>
             </Suspense>
             <LanguageSelector />
