@@ -29,7 +29,7 @@ const ProfileSetup = () => {
     if (success) {
       // Redirect to appropriate profile page
       if (selectedUserType === 'owner') {
-        navigate('/owner-profile');
+        navigate('/owner-jobs');
       } else {
         navigate('/harvester-profile');
       }
@@ -49,7 +49,7 @@ const ProfileSetup = () => {
     if (success) {
       // Redirect to appropriate dashboard
       if (selectedUserType === 'owner') {
-        navigate('/owner-profile');
+        navigate('/owner-jobs');
       } else {
         navigate('/harvester-dashboard');
       }

@@ -26,14 +26,9 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const getProfileLink = () => {
-    if (!profile) return '/auth';
-    return profile.user_type === 'owner' ? '/owner-profile' : '/harvester-dashboard';
-  };
-
   const getMyProfileLink = () => {
     if (!profile) return '/auth';
-    return profile.user_type === 'owner' ? '/owner-my-profile' : '/harvester-profile';
+    return profile.user_type === 'owner' ? '/account' : '/harvester-profile';
   };
 
   return (
@@ -47,35 +42,31 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-6">
+          <Link to="/jobs" className="hover:text-sand transition-colors">
+            {t('common.jobs')}
+          </Link>
+
           <Link to="/search" className="hover:text-sand transition-colors">
             {t('common.search')}
           </Link>
-          
-          {/* Show different links based on user type */}
+
+          {/* Role-specific workspace links */}
           {profile?.user_type === 'owner' && (
-            <Link to="/owner-profile" className="hover:text-sand transition-colors">
-              {t('common.owner')}
+            <Link to="/owner-jobs" className="hover:text-sand transition-colors">
+              {t('common.myJobs')}
             </Link>
           )}
-          
+
           {profile?.user_type === 'harvester' && (
-            <Link to="/harvester-dashboard" className="hover:text-sand transition-colors">
-              {t('common.harvester')}
+            <Link to="/my-applications" className="hover:text-sand transition-colors">
+              {t('common.myApplications')}
             </Link>
           )}
-          
+
           {user && (
-            <>
-              <Link to="/messages" className="hover:text-sand transition-colors">
-                {t('common.messages')}
-              </Link>
-              <Link to="/payment" className="hover:text-sand transition-colors">
-                {t('common.payments')}
-              </Link>
-              <Link to="/evaluation" className="hover:text-sand transition-colors">
-                {t('common.evaluations')}
-              </Link>
-            </>
+            <Link to="/messages" className="hover:text-sand transition-colors">
+              {t('common.messages')}
+            </Link>
           )}
           
           {/* Menu More avec À propos */}
@@ -139,34 +130,30 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden absolute top-16 left-0 right-0 bg-olive-dark py-4 px-6 shadow-lg animate-fadeIn z-50">
           <div className="flex flex-col space-y-4">
+            <Link to="/jobs" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+              {t('common.jobs')}
+            </Link>
+
             <Link to="/search" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
               {t('common.search')}
             </Link>
-            
+
             {profile?.user_type === 'owner' && (
-              <Link to="/owner-profile" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-                {t('common.owner')}
+              <Link to="/owner-jobs" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                {t('common.myJobs')}
               </Link>
             )}
-            
+
             {profile?.user_type === 'harvester' && (
-              <Link to="/harvester-dashboard" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-                {t('common.harvester')}
+              <Link to="/my-applications" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                {t('common.myApplications')}
               </Link>
             )}
-            
+
             {user && (
-              <>
-                <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-                  {t('common.messages')}
-                </Link>
-                <Link to="/payment" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-                  {t('common.payments')}
-                </Link>
-                <Link to="/evaluation" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
-                  {t('common.evaluations')}
-                </Link>
-              </>
+              <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                {t('common.messages')}
+              </Link>
             )}
             
             <Link to="/about" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>

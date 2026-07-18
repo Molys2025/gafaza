@@ -129,7 +129,7 @@ const ExperienceFlow = () => {
       setCurrentStep('complete');
       setTimeout(() => {
         if (userType === 'owner') {
-          navigate('/owner-profile');
+          navigate('/owner-jobs');
         } else {
           navigate('/harvester-dashboard');
         }

@@ -168,19 +168,6 @@ const HarvesterDashboard = () => {
                   Consultez vos évaluations et construisez votre réputation
                 </p>
               </Link>
-              
-              <Link 
-                to="/payment" 
-                className="bg-olive/5 rounded-lg p-6 text-center hover:bg-olive/10 transition-colors cursor-pointer"
-              >
-                <div className="w-16 h-16 bg-olive rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CreditCard className="text-white" size={32} />
-                </div>
-                <h3 className="font-semibold text-olive-dark mb-2">Mes paiements</h3>
-                <p className="text-gray-600 text-sm">
-                  Gérez vos revenus et historique des paiements
-                </p>
-              </Link>
             </div>
           </div>
         </div>

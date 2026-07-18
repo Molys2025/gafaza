@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getMyJobs, updateJobStatus, type JobRow, type JobStatus } from "@/services/jobService";
 import { logger } from "@/lib/logger";
+import PublishJobDialog from "@/components/owner/PublishJobDialog";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Brouillon",
@@ -91,7 +92,10 @@ const OwnerJobs = () => {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold text-olive-dark mb-6">Mes annonces</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-olive-dark">Mes annonces</h1>
+        <PublishJobDialog onPublished={load} />
+      </div>
 
       {!isLoading && !loadError && jobs.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -123,13 +127,10 @@ const OwnerJobs = () => {
       ) : jobs.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-lg shadow">
           <Inbox className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <div className="text-gray-500 mb-2">Vous n'avez pas encore publié d'annonce</div>
-          <Button
-            className="bg-olive hover:bg-olive-dark mt-2"
-            onClick={() => navigate('/owner-olive-trees')}
-          >
-            Publier une annonce
-          </Button>
+          <div className="text-gray-500 mb-4">Vous n'avez pas encore publié d'annonce</div>
+          <div className="flex justify-center">
+            <PublishJobDialog onPublished={load} />
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

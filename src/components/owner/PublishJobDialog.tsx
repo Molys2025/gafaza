@@ -26,7 +26,8 @@ interface OliveGrove {
 }
 
 interface PublishJobDialogProps {
-  oliveGrove: OliveGrove;
+  /** Optional: prefill from a legacy olive grove. When absent, the dialog is fully standalone. */
+  oliveGrove?: OliveGrove;
   onPublished?: () => void;
 }
 
@@ -39,7 +40,10 @@ const PublishJobDialog = ({ oliveGrove, onPublished }: PublishJobDialogProps) =>
   const [endDate, setEndDate] = useState<Date>();
   const [isPublishing, setIsPublishing] = useState(false);
   const [formData, setFormData] = useState({
-    title: `Cueillette d'olives - ${oliveGrove.name}`,
+    title: oliveGrove ? `Cueillette d'olives - ${oliveGrove.name}` : "Cueillette d'olives",
+    location: oliveGrove?.location ?? '',
+    treeCount: oliveGrove?.trees ?? undefined as number | undefined,
+    variety: oliveGrove?.variety ?? '',
     workersNeeded: 3,
     dailyRate: 45,
     paymentType: 'daily' as JobPaymentType,
@@ -104,9 +108,9 @@ const PublishJobDialog = ({ oliveGrove, onPublished }: PublishJobDialogProps) =>
         paymentAmount: formData.dailyRate,
         workingHours: formData.workingHours,
         facilities: formData.facilities,
-        locationAddress: oliveGrove.location,
-        treeCount: oliveGrove.trees,
-        oliveTypes: oliveGrove.variety ? [oliveGrove.variety] : null,
+        locationAddress: formData.location,
+        treeCount: formData.treeCount ?? null,
+        oliveTypes: formData.variety ? [formData.variety] : null,
       });
 
       toast({
@@ -140,34 +144,43 @@ const PublishJobDialog = ({ oliveGrove, onPublished }: PublishJobDialogProps) =>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-olive" />
-            Publier une annonce pour {oliveGrove.name}
+            {oliveGrove ? `Publier une annonce pour ${oliveGrove.name}` : "Publier une annonce"}
           </DialogTitle>
           <DialogDescription>
-            Créez une annonce de travail pour votre oliveraie
+            Créez une annonce de travail pour votre récolte
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Informations de l'oliveraie */}
-          <div className="p-4 bg-olive/5 rounded-lg">
-            <h3 className="font-semibold text-olive-dark mb-2">Informations de l'oliveraie</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Nom :</span>
-                <span className="ml-2 font-medium">{oliveGrove.name}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Localisation :</span>
-                <span className="ml-2 font-medium">{oliveGrove.location}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Nombre d'arbres :</span>
-                <span className="ml-2 font-medium">{oliveGrove.trees}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Variété :</span>
-                <span className="ml-2 font-medium">{oliveGrove.variety}</span>
-              </div>
+          {/* Localisation de la récolte */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <Label htmlFor="location">Localisation</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                placeholder="Ex: Sfax, Route de Gabès"
+              />
+            </div>
+            <div>
+              <Label htmlFor="treeCount">Nombre d'arbres (optionnel)</Label>
+              <Input
+                id="treeCount"
+                type="number"
+                min="0"
+                value={formData.treeCount ?? ''}
+                onChange={(e) => handleInputChange('treeCount', e.target.value === '' ? undefined : parseInt(e.target.value))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="variety">Variété (optionnel)</Label>
+              <Input
+                id="variety"
+                value={formData.variety}
+                onChange={(e) => handleInputChange('variety', e.target.value)}
+                placeholder="Ex: Chetoui"
+              />
             </div>
           </div>
 

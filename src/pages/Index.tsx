@@ -45,12 +45,12 @@ const Index = () => {
           {/* Boutons classiques */}
           <div className="flex flex-col md:flex-row gap-4 justify-center animate-fadeIn">
             <Button className="bg-olive hover:bg-olive-dark text-white px-8 py-6 text-lg" asChild>
-              <Link to="/owner-profile">
+              <Link to="/owner-jobs">
                 {t('home.ownerButton')}
               </Link>
             </Button>
             <Button className="bg-olive-dark hover:bg-olive text-white px-8 py-6 text-lg" asChild>
-              <Link to="/harvester-dashboard">
+              <Link to="/jobs">
                 {t('home.harvesterButton')}
               </Link>
             </Button>
