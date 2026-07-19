@@ -127,6 +127,68 @@ export const useAuth = () => {
     }
   };
 
+  // Envoie un code OTP via WhatsApp (canal Twilio Verify). En signup, le rôle
+  // est passé en user_metadata pour le trigger handle_new_user.
+  const sendPhoneOtp = async (
+    phone: string,
+    role?: 'job_seeker' | 'work_provider'
+  ) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone,
+        options: {
+          channel: 'whatsapp',
+          data: role ? { role } : undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Code envoyé',
+        description: 'Vérifiez WhatsApp, un code à 6 chiffres vous a été envoyé.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Send phone OTP error:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  // Vérifie le code OTP téléphone (type 'sms' même quand le canal est WhatsApp).
+  const verifyPhoneOtp = async (phone: string, token: string) => {
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token,
+        type: 'sms',
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Connecté',
+        description: 'Vous êtes maintenant connecté.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Verify phone OTP error:', error);
+      toast({
+        title: 'Erreur de connexion',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -153,6 +215,8 @@ export const useAuth = () => {
     signUp,
     signIn,
     signInWithGoogle,
+    sendPhoneOtp,
+    verifyPhoneOtp,
     signOut,
   };
 };

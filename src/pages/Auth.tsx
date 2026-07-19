@@ -7,11 +7,20 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, MessageCircle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+// Normalise un numéro tunisien vers le format E.164 (+216XXXXXXXX).
+const normalizePhone = (raw: string): string => {
+  const digits = raw.replace(/[^\d+]/g, '');
+  if (digits.startsWith('+')) return digits;
+  if (digits.startsWith('216')) return `+${digits}`;
+  return `+216${digits}`;
+};
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,8 +28,12 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [role, setRole] = useState<'job_seeker' | 'work_provider'>('job_seeker');
-  
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  // Flux OTP téléphone (WhatsApp)
+  const [phone, setPhone] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+
+  const { signIn, signUp, signInWithGoogle, sendPhoneOtp, verifyPhoneOtp } = useAuth();
   const navigate = useNavigate();
 
   const handleGoogle = async () => {
@@ -32,6 +45,42 @@ const Auth = () => {
       await signInWithGoogle();
     } catch (err: any) {
       setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!phone) {
+      setError('Veuillez saisir votre numéro de téléphone');
+      return;
+    }
+    setLoading(true);
+    try {
+      const ok = await sendPhoneOtp(normalizePhone(phone), isLogin ? undefined : role);
+      if (ok) setOtpSent(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (otpCode.length < 6) {
+      setError('Le code doit contenir 6 chiffres');
+      return;
+    }
+    setLoading(true);
+    try {
+      const ok = await verifyPhoneOtp(normalizePhone(phone), otpCode);
+      if (ok) navigate('/');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -87,13 +136,143 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Choix de la méthode : email/mot de passe ou WhatsApp OTP */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <Button
+              type="button"
+              variant={authMethod === 'email' ? 'default' : 'outline'}
+              className={authMethod === 'email' ? 'bg-olive hover:bg-olive-dark text-white' : ''}
+              onClick={() => { setAuthMethod('email'); setError(''); setOtpSent(false); }}
+            >
+              <Mail className="mr-2 h-4 w-4" /> Email
+            </Button>
+            <Button
+              type="button"
+              variant={authMethod === 'phone' ? 'default' : 'outline'}
+              className={authMethod === 'phone' ? 'bg-olive hover:bg-olive-dark text-white' : ''}
+              onClick={() => { setAuthMethod('phone'); setError(''); }}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
+            </Button>
+          </div>
+
+          {authMethod === 'phone' ? (
+            otpSent ? (
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otp">Code reçu sur WhatsApp</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    autoFocus
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Code envoyé au {normalizePhone(phone)}.
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-olive hover:bg-olive-dark text-white"
+                  disabled={loading}
+                >
+                  {loading ? 'Vérification...' : 'Vérifier le code'}
+                </Button>
+                <div className="flex justify-between text-sm">
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-olive px-0"
+                    onClick={() => { setOtpSent(false); setOtpCode(''); setError(''); }}
+                  >
+                    Modifier le numéro
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-olive px-0"
+                    disabled={loading}
+                    onClick={() => handleSendOtp({ preventDefault: () => {} } as React.FormEvent)}
+                  >
+                    Renvoyer
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSendOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Numéro de téléphone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+216 20 123 456"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Un code à 6 chiffres vous sera envoyé sur WhatsApp.
+                  </p>
+                </div>
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label>Je souhaite m'inscrire en tant que</Label>
+                    <RadioGroup
+                      value={role}
+                      onValueChange={(v) => setRole(v as 'job_seeker' | 'work_provider')}
+                      className="grid grid-cols-2 gap-2"
+                    >
+                      <label
+                        htmlFor="role-harvester-phone"
+                        className={`flex items-start gap-2 rounded-md border p-3 cursor-pointer ${
+                          role === 'job_seeker' ? 'border-olive bg-olive/5' : 'border-input'
+                        }`}
+                      >
+                        <RadioGroupItem value="job_seeker" id="role-harvester-phone" className="mt-0.5" />
+                        <span className="flex flex-col">
+                          <span className="text-sm font-medium">Cueilleur</span>
+                          <span className="text-xs text-muted-foreground">Je cherche du travail de récolte et je candidate aux annonces.</span>
+                        </span>
+                      </label>
+                      <label
+                        htmlFor="role-owner-phone"
+                        className={`flex items-start gap-2 rounded-md border p-3 cursor-pointer ${
+                          role === 'work_provider' ? 'border-olive bg-olive/5' : 'border-input'
+                        }`}
+                      >
+                        <RadioGroupItem value="work_provider" id="role-owner-phone" className="mt-0.5" />
+                        <span className="flex flex-col">
+                          <span className="text-sm font-medium">Propriétaire</span>
+                          <span className="text-xs text-muted-foreground">Je publie des annonces et je recrute des cueilleurs.</span>
+                        </span>
+                      </label>
+                    </RadioGroup>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-olive hover:bg-olive-dark text-white"
+                  disabled={loading}
+                >
+                  {loading ? 'Envoi...' : 'Recevoir le code'}
+                </Button>
+              </form>
+            )
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -192,6 +371,7 @@ const Auth = () => {
               {loading ? 'Chargement...' : (isLogin ? 'Se connecter' : 'Créer un compte')}
             </Button>
           </form>
+          )}
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
@@ -239,6 +419,8 @@ const Auth = () => {
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
+                setOtpSent(false);
+                setOtpCode('');
               }}
               className="text-olive hover:text-olive-dark"
             >
