@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import IntroExperience from './IntroExperience';
 import MediaRecorderComponent from './MediaRecorder';
-import AIAssistant from './AIAssistant';
+import ProfileConfirmation from './ProfileConfirmation';
 import UserTypeSelection from '../UserTypeSelection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -17,7 +17,6 @@ const ExperienceFlow = () => {
   const [currentStep, setCurrentStep] = useState<FlowStep>('intro');
   const [userType, setUserType] = useState<'owner' | 'harvester' | null>(null);
   const [mediaBlob, setMediaBlob] = useState<Blob | null>(null);
-  const [mediaType, setMediaType] = useState<'video' | 'audio' | null>(null);
   const [extractedData, setExtractedData] = useState<any>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
   const { createProfile } = useProfile();
@@ -29,7 +28,7 @@ const ExperienceFlow = () => {
     { id: 'user-type', title: 'Type d\'utilisateur' },
     { id: 'recording', title: 'Enregistrement' },
     { id: 'processing', title: 'Analyse IA' },
-    { id: 'assistant', title: 'Finalisation' },
+    { id: 'assistant', title: 'Confirmation' },
     { id: 'complete', title: 'Terminé' }
   ];
 
@@ -49,14 +48,13 @@ const ExperienceFlow = () => {
     setCurrentStep('recording');
   };
 
-  const handleMediaRecorded = (blob: Blob, type: 'video' | 'audio') => {
+  const handleMediaRecorded = (blob: Blob, _type: 'audio') => {
     setMediaBlob(blob);
-    setMediaType(type);
     setCurrentStep('processing');
-    processMedia(blob, type);
+    processMedia(blob);
   };
 
-  const processMedia = async (blob: Blob, type: 'video' | 'audio') => {
+  const processMedia = async (blob: Blob) => {
     try {
       setProcessingProgress(10);
       
@@ -73,7 +71,7 @@ const ExperienceFlow = () => {
             body: {
               videoData: base64Data,
               userType: userType,
-              mediaType: type
+              mediaType: 'audio'
             }
           });
 
@@ -89,7 +87,7 @@ const ExperienceFlow = () => {
 
           toast({
             title: 'Analyse terminée !',
-            description: `Votre ${type === 'video' ? 'vidéo' : 'audio'} a été analysé avec succès.`,
+            description: 'Votre audio a été analysé avec succès.',
           });
 
           setTimeout(() => {
@@ -100,7 +98,7 @@ const ExperienceFlow = () => {
           console.error('Error processing media:', error);
           toast({
             title: 'Erreur d\'analyse',
-            description: `Impossible d'analyser votre ${type === 'video' ? 'vidéo' : 'audio'}. Veuillez réessayer.`,
+            description: "Impossible d'analyser votre audio. Veuillez réessayer.",
             variant: 'destructive',
           });
           setCurrentStep('recording');
@@ -172,9 +170,9 @@ const ExperienceFlow = () => {
           <div className="min-h-screen bg-sand-light flex items-center justify-center px-4">
             <Card className="w-full max-w-2xl mx-auto">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
                   <Bot className="h-5 w-5 animate-pulse" />
-                  Analyse IA en cours...
+                  Analyse IA de votre audio...
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -182,7 +180,7 @@ const ExperienceFlow = () => {
                   <Loader2 className="h-16 w-16 animate-spin text-blue-500 mx-auto mb-4" />
                   <Progress value={processingProgress} className="w-full mb-4" />
                   <p className="text-sm text-gray-600">
-                    {processingProgress < 30 && `Extraction de l'${mediaType === 'video' ? 'audio' : 'audio'}...`}
+                    {processingProgress < 30 && "Extraction de l'audio..."}
                     {processingProgress >= 30 && processingProgress < 70 && "Transcription et analyse..."}
                     {processingProgress >= 70 && "Structuration des données..."}
                   </p>
@@ -205,11 +203,16 @@ const ExperienceFlow = () => {
 
       case 'assistant':
         return extractedData ? (
-          <div className="min-h-screen bg-sand-light flex items-center justify-center px-4">
-            <AIAssistant
+          <div className="min-h-screen bg-sand-light flex items-center justify-center px-4 py-8">
+            <ProfileConfirmation
               initialData={extractedData}
               userType={userType!}
               onProfileComplete={handleProfileComplete}
+              onRerecord={() => {
+                setExtractedData(null);
+                setMediaBlob(null);
+                setCurrentStep('recording');
+              }}
             />
           </div>
         ) : null;

@@ -14,7 +14,7 @@ serve(async (req) => {
   if ('response' in guard) return guard.response;
 
   try {
-    const { videoData, userType, mediaType = 'video' } = await req.json();
+    const { videoData, userType, mediaType = 'audio' } = await req.json();
 
     if (!videoData) {
       throw new Error('No media data provided');
@@ -32,12 +32,12 @@ serve(async (req) => {
     
     // Create FormData for Whisper API
     const formData = new FormData();
-    const blob = new Blob([binaryData], { 
-      type: mediaType === 'video' ? 'video/webm' : 'audio/webm' 
+    const blob = new Blob([binaryData], {
+      type: mediaType === 'video' ? 'video/webm' : 'audio/webm',
     });
     formData.append('file', blob, `media.webm`);
     formData.append('model', 'whisper-1');
-    formData.append('language', 'fr');
+    // No fixed language: users speak fr / ar / derja, let Whisper auto-detect.
 
     console.log('Sending transcription request to OpenAI...');
 
@@ -119,6 +119,7 @@ Réponds uniquement avec le JSON structuré, sans texte additionnel.
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
+        response_format: { type: 'json_object' },
         messages: [
           {
             role: 'system',
