@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Sparkles, Minus, Plus, X, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Minus, Plus, X, CheckCircle2, MapPin, Loader2, UserCircle2 } from 'lucide-react';
 import { REGIONS } from '@/constants/regions';
+import { useAuth } from '@/hooks/useAuth';
+import { getCurrentRegion } from '@/utils/nearestRegion';
+import { toast } from 'sonner';
 
 interface ProfileConfirmationProps {
   initialData: any;
@@ -32,6 +35,18 @@ const useSuggested = (initialValue: unknown) =>
 const AiBadge = () => (
   <Badge variant="secondary" className="ml-2 text-[10px] gap-1 py-0 px-1.5">
     <Sparkles className="h-3 w-3" /> IA
+  </Badge>
+);
+
+const AccountBadge = () => (
+  <Badge variant="outline" className="ml-2 text-[10px] gap-1 py-0 px-1.5">
+    <UserCircle2 className="h-3 w-3" /> Votre compte
+  </Badge>
+);
+
+const PositionBadge = () => (
+  <Badge variant="outline" className="ml-2 text-[10px] gap-1 py-0 px-1.5">
+    <MapPin className="h-3 w-3" /> Position
   </Badge>
 );
 
@@ -178,6 +193,7 @@ const ProfileConfirmation = ({
   onProfileComplete,
   onRerecord,
 }: ProfileConfirmationProps) => {
+  const { user } = useAuth();
   const p = initialData?.personal_info ?? {};
   const prop = initialData?.property_info ?? {};
   const skills = initialData?.skills_and_services ?? {};
@@ -190,6 +206,31 @@ const ProfileConfirmation = ({
   const [phone, setPhone] = useState<string>(initialData?.phone ?? '');
   const [whatsapp, setWhatsapp] = useState<string>(initialData?.whatsapp ?? '');
   const [specialNotes, setSpecialNotes] = useState<string>(extra.special_notes ?? '');
+
+  // Track fields pre-filled from the auth account (not from AI).
+  const [phoneFromAccount, setPhoneFromAccount] = useState(false);
+  const [whatsappFromAccount, setWhatsappFromAccount] = useState(false);
+
+  // Track fields filled from geolocation.
+  const [locationFromPosition, setLocationFromPosition] = useState(false);
+  const [regionsFromPosition, setRegionsFromPosition] = useState(false);
+  const [geoLoadingLocation, setGeoLoadingLocation] = useState(false);
+  const [geoLoadingRegions, setGeoLoadingRegions] = useState(false);
+
+  // Pre-fill phone / whatsapp from auth account when AI didn't extract them.
+  useEffect(() => {
+    const accountPhone = user?.phone ? `+${user.phone.replace(/^\+/, '')}` : '';
+    if (!accountPhone) return;
+    if (!phone) {
+      setPhone(accountPhone);
+      setPhoneFromAccount(true);
+    }
+    if (!whatsapp) {
+      setWhatsapp(accountPhone);
+      setWhatsappFromAccount(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.phone]);
 
   // Owner
   const [businessName, setBusinessName] = useState<string>(prop.business_name ?? '');
@@ -232,6 +273,38 @@ const ProfileConfirmation = ({
     userType === 'owner'
       ? propertyAddress.trim().length > 0 || location.trim().length > 0
       : preferredRegions.length > 0 || location.trim().length > 0;
+
+  const fillLocationFromPosition = async () => {
+    setGeoLoadingLocation(true);
+    try {
+      const region = await getCurrentRegion();
+      setLocation(region);
+      setLocationFromPosition(true);
+      if (userType === 'harvester' && !preferredRegions.includes(region)) {
+        setPreferredRegions((prev) => [...prev, region]);
+        setRegionsFromPosition(true);
+      }
+      toast.success(`Position détectée : ${region}`);
+    } catch {
+      toast.error('Localisation indisponible, choisissez votre région manuellement');
+    } finally {
+      setGeoLoadingLocation(false);
+    }
+  };
+
+  const addRegionFromPosition = async () => {
+    setGeoLoadingRegions(true);
+    try {
+      const region = await getCurrentRegion();
+      setPreferredRegions((prev) => (prev.includes(region) ? prev : [...prev, region]));
+      setRegionsFromPosition(true);
+      toast.success(`Position détectée : ${region}`);
+    } catch {
+      toast.error('Localisation indisponible, choisissez votre région manuellement');
+    } finally {
+      setGeoLoadingRegions(false);
+    }
+  };
 
   const canSubmit =
     name.trim().length > 0 && phone.trim().length > 0 && hasLocation;
@@ -303,12 +376,32 @@ const ProfileConfirmation = ({
           <Label className="flex items-center">
             {userType === 'owner' ? 'Ville / région' : 'Ville actuelle'}
             {locationSuggested && <AiBadge />}
+            {!locationSuggested && locationFromPosition && <PositionBadge />}
           </Label>
-          <Input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Ex : Sfax"
-          />
+          <div className="flex gap-2">
+            <Input
+              value={location}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setLocationFromPosition(false);
+              }}
+              placeholder="Ex : Sfax"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={fillLocationFromPosition}
+              disabled={geoLoadingLocation}
+              className="shrink-0"
+            >
+              {geoLoadingLocation ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MapPin className="h-4 w-4" />
+              )}
+              <span className="ml-1 hidden sm:inline">Ma position</span>
+            </Button>
+          </div>
         </div>
 
         {/* Phone */}
@@ -316,13 +409,16 @@ const ProfileConfirmation = ({
           <div className="space-y-2">
             <Label className="flex items-center">
               Téléphone <span className="text-red-500 ml-1">*</span>
-              {phoneSuggested && <AiBadge />}
+              {phoneSuggested ? <AiBadge /> : phoneFromAccount && <AccountBadge />}
             </Label>
             <Input
               type="tel"
               inputMode="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                setPhoneFromAccount(false);
+              }}
               className={missingRing(!phone.trim())}
               placeholder="+216 ..."
             />
@@ -330,13 +426,16 @@ const ProfileConfirmation = ({
           <div className="space-y-2">
             <Label className="flex items-center">
               WhatsApp
-              {whatsappSuggested && <AiBadge />}
+              {whatsappSuggested ? <AiBadge /> : whatsappFromAccount && <AccountBadge />}
             </Label>
             <Input
               type="tel"
               inputMode="tel"
               value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
+              onChange={(e) => {
+                setWhatsapp(e.target.value);
+                setWhatsappFromAccount(false);
+              }}
               placeholder="+216 ..."
             />
           </div>
@@ -454,10 +553,25 @@ const ProfileConfirmation = ({
               <Label className="flex items-center">
                 Régions préférées <span className="text-red-500 ml-1">*</span>
                 {regionsSuggested && <AiBadge />}
+                {!regionsSuggested && regionsFromPosition && <PositionBadge />}
               </Label>
               <div className={missingRing(preferredRegions.length === 0 && !location.trim()) + ' rounded-md'}>
                 <RegionsSelect values={preferredRegions} onChange={setPreferredRegions} />
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addRegionFromPosition}
+                disabled={geoLoadingRegions}
+              >
+                {geoLoadingRegions ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                ) : (
+                  <MapPin className="h-4 w-4 mr-1" />
+                )}
+                Utiliser ma position
+              </Button>
             </div>
           </>
         )}
