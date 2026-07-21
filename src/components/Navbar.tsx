@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, ChevronDown, LogOut } from "lucide-react";
+import { Menu, X, User, ChevronDown, LogOut, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,6 +67,13 @@ const Navbar = () => {
           {user && (
             <Link to="/messages" className="hover:text-sand transition-colors">
               {t('common.messages')}
+            </Link>
+          )}
+
+          {user && (
+            <Link to="/support" className="flex items-center hover:text-sand transition-colors" title="Aide">
+              <LifeBuoy className="mr-1 h-4 w-4" />
+              Aide
             </Link>
           )}
           
@@ -155,6 +162,12 @@ const Navbar = () => {
             {user && (
               <Link to="/messages" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
                 {t('common.messages')}
+              </Link>
+            )}
+
+            {user && (
+              <Link to="/support" className="text-white hover:text-sand transition-colors" onClick={() => setIsOpen(false)}>
+                Aide
               </Link>
             )}
             
