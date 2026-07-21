@@ -32,6 +32,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Account = lazy(() => import("./pages/Account"));
 const OwnerPublicProfile = lazy(() => import("./pages/OwnerPublicProfile"));
 const OwnerJobs = lazy(() => import("./pages/OwnerJobs"));
+const Support = lazy(() => import("./pages/Support"));
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ function App() {
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requiredRole="admin" requiresProfile={false}><Admin /></ProtectedRoute>} />
               <Route path="/account" element={<ProtectedRoute requiresProfile={false}><Account /></ProtectedRoute>} />
+              <Route path="/support" element={<ProtectedRoute requiresProfile={false}><Support /></ProtectedRoute>} />
               <Route path="*" element={<Index />} />
             </Routes>
             </Suspense>
